@@ -1,437 +1,603 @@
+
 import { SugyaSection, LogicType, Era, Concept, AnalysisComponent, PsakEntry, LogicSystemData, ModernApplication, VisualFlowStep, ShulchanAruchData } from './types';
 
-// --- CONCEPTS ---
+// --- CONCEPTS (ENRICHED) ---
 export const INITIAL_CONCEPTS: Concept[] = [
   { 
     id: 'c1', 
-    nameHebrew: 'חזקה', 
-    nameEnglish: 'Chazaka', 
-    description: 'A legal presumption of ownership or status quo.', 
+    nameHebrew: 'דברים שבלב', 
+    nameEnglish: 'Dvarim Shebalev', 
+    description: 'Unspoken thoughts or intentions that contradict a spoken agreement or action.', 
     category: 'Logic',
-    subComponents: ['Chazaka D\'Hashta (Current Status)', 'Chazaka D\'Meikara (Original Status)', 'Mara Kama (Previous Owner)'],
-    relatedLaws: ['Hamotzi Mechavero (Burden of Proof)', 'Bari V\'Shema (Certainty vs Uncertainty)']
+    subComponents: ['Gilui Daas (Revealed Intent)', 'Umdana (Assumed Intent)', 'Devarim Shebalev Einan Devarim'],
+    relatedLaws: ['Sale under duress', 'Kiddushin conditions', 'Nedarim'],
+    attributes: [
+        { label: 'General Rule', value: 'Einan Devarim (They are nothing) - Actions follow speech/act, not hidden thought.' },
+        { label: 'Exception', value: 'Umdana D\'Muchach (Proven Assumption) - If circumstances make the intent obvious to all.' }
+    ],
+    opinions: [
+        { authority: 'Rava (Kid 49b)', text: 'Even in a sale under duress, we follow the act unless explicit declaration (Modaa) exists.' },
+        { authority: 'Ramban', text: 'In Kiddushin/Sales, hidden intent is void. In Nedarim, it might differ if "Piv V\'Libo Shavin" is required.' },
+        { authority: 'Rashba', text: 'Thoughts only invalidate if they contradict the act. If they support it (like "I meant to be a Nazir like Samson"), they might be valid.' },
+        { authority: 'Birchas Shmuel', text: 'In Kiddushin, the Act (Maaseh) is primary. In Kodshim, the Speech (Dibur) is primary.' }
+    ]
   },
   { 
     id: 'c2', 
-    nameHebrew: 'ערב', 
-    nameEnglish: 'Arev', 
-    description: 'Guarantor. A legal mechanism where one binds oneself based on the benefit given to another.', 
+    nameHebrew: 'יד', 
+    nameEnglish: 'Yad (Extension)', 
+    description: 'A partial or incomplete statement that "extends" to become a full legal statement based on context.', 
     category: 'Kinyan',
-    subComponents: ['Arev Kablan (Unconditional Guarantor)', 'Shibud HaGuf (Bodily Lien)'],
-    relatedLaws: ['Kiddushin M\'Din Arev', 'Halvaah (Loan)', 'Asmachta (Reliance)']
+    subComponents: ['Yad Mochiach (Clear Handle)', 'Yad She\'eino Mochiach (Ambiguous Handle)'],
+    relatedLaws: ['Nedarim (Vows)', 'Kiddushin', 'Peah', 'Tzedaka'],
+    attributes: [
+        { label: 'Origin', value: 'Nedarim (Vows)' },
+        { label: 'Mechanism', value: 'Contextual completion of speech.' }
+    ],
+    opinions: [
+        { authority: 'Shmuel', text: 'Requires "Yad Mochiach" (Unambiguous context) to work in Kiddushin.' },
+        { authority: 'Rav Papa', text: 'Questions if "Yad" works at all in Kiddushin, as it is derived from Nedarim.' },
+        { authority: 'Ran', text: 'Nedarim uses Speech to create status. Kiddushin uses Speech to clarify an Act. Yad might not apply to Acts.' },
+        { authority: 'Pnei Yehoshua', text: 'Maybe Rav Papa doubts if we learn Kiddushin from Nedarim regarding the definition of "Speech".' }
+    ]
   },
   { 
     id: 'c3', 
-    nameHebrew: 'קנין', 
-    nameEnglish: 'Kinyan', 
-    description: 'The formal act of acquisition.', 
-    category: 'Kinyan',
-    subComponents: ['Maaseh Kinyan (Act)', 'Daas (Intent)', 'Gemiras Daas (Finalization)'],
-    relatedLaws: ['Hagbah (Lifting)', 'Meshicha (Pulling)', 'Kinyan Sudar (Handkerchief)']
+    nameHebrew: 'פיו ולבו שוין', 
+    nameEnglish: 'Piv V\'Libo Shavin', 
+    description: 'The requirement that one\'s spoken words must match their internal intent.', 
+    category: 'Kodshim',
+    subComponents: ['Gamar Belibo (Resolved in heart)', 'Hotzaat Sfatayim (Speech)'],
+    relatedLaws: ['Nedarim', 'Kodshim', 'Shevuot'],
+    attributes: [
+        { label: 'Source', value: 'Shevuot 26b ("Livta bisfatayim")' },
+        { label: 'Application', value: 'Critical for Vows/Holy Objects. Less critical for Transactional Kinyanim.' }
+    ],
+    opinions: [
+        { authority: 'Rambam', text: 'Required for Nedarim. If one meant bread and said wheat, it is invalid.' },
+        { authority: 'Birchas Shmuel', text: 'This rule is specific to "Chalot Dibur" (Speech-created status). Kiddushin is "Chalot Maaseh" (Act-created status), so it follows Dvarim Shebalev rules instead.' }
+    ]
   },
   {
       id: 'c4',
-      nameHebrew: 'הנאה',
-      nameEnglish: 'Hana\'ah',
-      description: 'Benefit or pleasure. Can serve as a substitute for monetary value in legal transactions.',
+      nameHebrew: 'ערב',
+      nameEnglish: 'Arev (Guarantor)',
+      description: 'A mechanism where a person obligates themselves based on the benefit (Hana\'ah) of being trusted, without receiving money.',
       category: 'Kinyan',
-      subComponents: ['Hana\'ah D\'Hashta (Immediate Benefit)', 'Hana\'at Mamon (Monetary Benefit)'],
-      relatedLaws: ['Kiddushin', 'Ribis (Interest)']
+      subComponents: ['Arev Kablan', 'Shibud HaGuf'],
+      relatedLaws: ['Kiddushin M\'Din Arev', 'Loans'],
+      attributes: [
+          { label: 'Mechanism', value: 'Hana\'ah (Benefit) replaces Kesef (Money).' }
+      ],
+      opinions: [
+          { authority: 'Rashi', text: 'Binding works due to the psychological benefit of trust.' },
+          { authority: 'Rashba', text: 'Binding is automatic upon the lender\'s act of giving.' }
+      ]
   },
   {
       id: 'c5',
-      nameHebrew: 'שליחות',
-      nameEnglish: 'Shlichut',
-      description: 'Agency. "A person\'s agent is like himself."',
+      nameHebrew: 'אומדנא',
+      nameEnglish: 'Umdana',
+      description: 'A legal assessment of intent based on circumstantial evidence.',
       category: 'Logic',
-      subComponents: ['Yad Poel (Hand of Worker)', 'Shaliach L\'Kabalah (Agent to Receive)'],
-      relatedLaws: ['Kiddushin via Agent']
+      subComponents: ['Umdana D\'Muchach', 'Gilui Daas'],
+      attributes: [
+          { label: 'Function', value: 'Overrides "Dvarim Shebalev Einan Dvarim".' }
+      ],
+      opinions: [
+          { authority: 'Tosafot', text: 'If a man sells everything to move to Israel, the sale is conditional on the move, even if unspoken.' }
+      ]
   }
 ];
 
 // ==========================================
-// SUGYA: KIDDUSHIN 6B-7A (Deep Analysis)
+// SUGYA: BIRCHAS SHMUEL SIMAN 1 (MAASEH KIDDUSHIN)
 // ==========================================
 
 const KID_6B_DEEP_DATA: SugyaSection = {
     id: 'kid-6b-deep',
-    title: 'Kiddushin 6b-7a: Ten Manah (Arev)',
-    sourceRef: 'Kiddushin 6b-7a',
+    title: 'Birchas Shmuel: Speech vs. Intent',
+    sourceRef: 'Kiddushin 5b-6a, Nedarim 6b',
     resources: {
         videoUrl: "https://www2.kolhalashon.com/en/regularSite/playShiur/41836819/-1/0/false",
         pdfUrl: "https://www2.kolhalashon.com/regularSite/playShiur/41836825"
     },
     chumashText: {
         sourceRef: "דברים כד:א",
-        text: "כִּי יִקַּח אִישׁ אִשָּׁה וּבְעָלָהּ, וְהָיָה אִם לֹא תִמְצָא חֵן בְּעֵינָיו כִּי מָצָא בָהּ עֶרְוַת דָּבָר, וְכָתַב לָהּ סֵפֶר כְּרִיתֻת וְנָתַן בְּיָדָהּ וְשִׁלְּחָהּ מִבֵּיתוֹ.",
-        translation: "When a man takes a wife and marries her, and it happens that she finds no favor in his eyes because he has found some indecency in her, and he writes her a certificate of divorce and puts it in her hand and sends her out of his house.",
-        targum: "אֲרֵי יִסַּב גְּבַר אִתְּתָא וְיִבְעֲלִינַּהּ וִיהֵי אִם לָא תַשְׁכַּח רַחֲמִין בְּעֵינוֹהִי אֲרֵי אַשְׁכַּח בַּהּ עֲבֵירַת פִּתְגָם וְיִכְתּוֹב לַהּ סְפַר תֵּירוּכִין וְיִתֵּין בִּידַהּ וְיִפְטְרִינַּהּ מִבֵּיתֵיהּ.",
-        targumTranslation: "When a man marries a woman and possesses her, and it happens that she does not find mercy in his eyes because he found in her a matter of transgression, he shall write for her a document of dismissal and place it in her hand and dismiss her from his house.",
+        text: "כִּי יִקַּח אִישׁ אִשָּׁה וּבְעָלָהּ וְהָיָה אִם לֹא תִמְצָא חֵן בְּעֵינָיו כִּי מָצָא בָהּ עֶרְוַת דָּבָר וְכָתַב לָהּ סֵפֶר כְּרִיתֻת וְנָתַן בְּיָדָהּ וְשִׁלְּחָהּ מִבֵּיתוֹ:",
+        translation: "When a man takes a wife and marries her, and it happens that she finds no favor in his eyes because he has found some indecency in her, and he writes her a bill of divorce and puts it in her hand and sends her out of his house...",
+        targum: "אֲרֵי יִסַּב גְּבַר אִתְּתָא וְיִבְעֲלִינַּהּ וִיהֵי אִם לָא תַשְׁכַּח רַחֲמִין בְּעֵינוֹהִי אֲרֵי אַשְׁכַּח בַּהּ עֲבֵידַת פִּתְגָם וְיִכְתּוֹב לַהּ סְפַר תֵּרוּכִין וְיִתֵּין בִּידַהּ וְיִפְטְרִינַּהּ מִבֵּיתֵיהּ:",
         rashi: [
             { 
                 id: "ch-r1", 
-                text: "כי יקח - אין קיחה אלא בכסף, וכן הוא אומר (בראשית כג) נתתי כסף השדה קח ממני.",
-                translation: "'When a man takes' - The term 'taking' (kicha) implies acquisition with money. As it says elsewhere (Genesis 23): 'I have given the money for the field, take it from me.'"
+                text: "כי יקח - אין קיחה אלא בכסף, שנאמר (בראשית כג) נתתי כסף השדה קח ממני",
+                translation: "'When a man takes' - Taking implies money, as it says (Genesis 23) 'I have given the money for the field, take it from me'."
             },
-            { 
-                id: "ch-r2", 
-                text: "ויצאה... והיתה - מקיש יציאה להויה, מה יציאה בשטר אף הויה בשטר.",
-                translation: "'And she leaves... and becomes' - The verse juxtaposes 'leaving' (divorce) to 'becoming' (marriage). Just as leaving is effected by a document (Get), so too becoming a wife can be effected by a document."
+            {
+                id: "ch-r2",
+                text: "ובעלה - קנה בביאה. מלמד שהאשה נקנית בכסף ובביאה",
+                translation: "'And marries her' - He acquires her through Relations. This teaches that a woman is acquired by Money and by Relations."
+            },
+            {
+                id: "ch-r3",
+                text: "ויצאה... והיתה - מקיש יציאה להויה, מה יציאה בשטר אף הויה בשטר",
+                translation: "Juxtaposes leaving (Divorce) to becoming (Marriage). Just as divorce requires a document, so does marriage."
+            },
+            {
+                id: "ch-r4", 
+                text: "וכתב לה - לשמה",
+                translation: "'And he writes for her' - Meaning, for her sake (Lishma). The document must be written specifically for the woman."
+            },
+            {
+                id: "ch-r5", 
+                text: "ספר כריתת - ספר הכורת בינו לבינה, שלא יהא לה שייכות עמו עוד",
+                translation: "A Scroll of Cutting - A document that severs the tie between them completely."
             }
         ]
     },
     mishnaContext: {
         previous: {
-            ref: 'מסכת סוטה פרק ט',
-            hebrew: '...עֶגְלָה עֲרוּפָה בַּלָּשׁוֹן הַקֹּדֶשׁ. שֶׁנֶּאֱמַר (דברים כא) כִּי יִמָּצֵא חָלָל בָּאֲדָמָה...',
-            english: '...The Eglah Arufah is recited in the Holy Tongue, as it says...'
+            ref: 'נדרים ב:א',
+            hebrew: 'כָּל כִּנּוּיֵי נְדָרִים כִּנְדָרִים, וַחֲרָמִים כַּחֲרָמִים, וּשְׁבוּעוֹת כִּשְׁבוּעוֹת, וּנְזִירוּת כִּנְזִירוּת. הָאוֹמֵר לַחֲבֵרוֹ, מֻדָּר אֲנִי מִמָּךְ, מֻפְרָשׁ אֲנִי מִמָּךְ, מְרֻחָק אֲנִי מִמָּךְ, שֶׁאֵינִי אוֹכֵל לָךְ, שֶׁאֵינִי טוֹעֵם לָךְ, אָסוּר',
+            english: 'All substitutes for vows are like vows... One who says to his friend "I am vow-bound from you", "I am separated from you"... is prohibited.'
         },
         next: {
-            ref: 'משנה ב',
-            hebrew: 'עֶבֶד עִבְרִי נִקְנֶה בְכֶסֶף וּבִשְׁטָר. וְקוֹנֶה אֶת עַצְמוֹ בְשָׁנִים וּבַיּוֹבֵל וּבְגִרְעוֹן כָּסֶף.',
-            english: 'A Hebrew slave is acquired with money or a deed, and acquires himself through years, Jubilee, or deduction of money.'
+            ref: 'קידושין ב:א',
+            hebrew: 'הָאִישׁ מְקַדֵּשׁ בּוֹ וּבִשְׁלוּחוֹ. הָאִשָּׁה מִתְקַדֶּשֶׁת בָּהּ וּבִשְׁלוּחָהּ. הָאִישׁ מְקַדֵּשׁ אֶת בִּתּוֹ כְּשֶׁהִיא נַעֲרָה בּוֹ וּבִשְׁלוּחוֹ.',
+            english: 'A man can betroth in person or via an agent. A woman can be betrothed in person or via an agent...'
         },
         bartenura: [
             {
                 id: 'bart-1',
-                scholar: 'Rabbi Ovadiah of Bartenura',
-                hebrewText: 'האשה נקנית - משום דבעי למתני סיפא וקונה את עצמה, תנא לשון קנין. אי נמי, משום דכתיב (דברים כב) כי יקח איש אשה, ותניא בקידושין (דף ב) כי יקח, אין קיחה אלא בכסף.',
-                englishText: '"The woman is acquired" - Because the Tanna wanted to teach later "and acquires herself", he used the language of "acquisition". Alternatively, because it is written "When a man takes (yikach) a wife", and "taking" implies money.'
+                scholar: 'Bartenura',
+                hebrewText: 'כל כינויי נדרים - לשונות שבדו להם בני אדם ולשון העמים נכרים והם דומים ללשון נדר, הרי הן כנדרים.',
+                englishText: 'Substitutes for vows - Expressions invented by people or foreign languages that resemble the language of vows, have the legal status of vows.'
             },
             {
                 id: 'bart-2',
-                scholar: 'Rabbi Ovadiah of Bartenura',
-                hebrewText: 'בשלש דרכים - כסף, שטר, וביאה. וכסף מנלן? גמר קיחה קיחה משדה עפרון. כתיב הכא כי יקח איש אשה, וכתיב התם (בראשית כג) נתתי כסף השדה קח ממני.',
-                englishText: '"In three ways" - Money, Deed, and Intercourse. How do we know Money? We derive "taking" from the field of Ephron.'
+                scholar: 'Bartenura',
+                hebrewText: 'האומר אהא הרי זה נזיר - בגמרא מוקי לה כשעובר לפניו נזיר, דהוי כאילו אמר אהא כזה.',
+                englishText: 'One who says "Ah\'a" is a Nazir - The Gemara establishes this case where a Nazir passes before him, so it implies "I will be like this one".'
+            },
+            {
+                id: 'bart-3',
+                scholar: 'Bartenura',
+                hebrewText: 'מודר אני ממך - הרי אני אסור בהנאתך כקרבן.',
+                englishText: 'I am vow-bound from you - Meaning, I am prohibited from deriving benefit from you just as I am prohibited from a sacrifice.'
             }
         ]
     },
     baseText: {
-        id: 'base-text-kid6b',
+        id: 'gemara-kid5b',
         type: LogicType.STATEMENT,
-        era: Era.TANNA,
-        speaker: 'Mishna',
-        hebrewText: 'הָאִשָּׁה נִקְנֵית בְּשָׁלֹשׁ דְּרָכִים, וְקוֹנָה אֶת עַצְמָהּ בִּשְׁתֵּי דְרָכִים. נִקְנֵית בְּכֶסֶף, בִּשְׁטָר, וּבְבִיאָה.',
-        englishText: 'A woman is acquired [betrothed] in three ways, and acquires herself [becomes free] in two ways. She is acquired with money, with a document, or with marital relations.',
-        concepts: ['c2', 'c3', 'c4'],
-        children: []
-    },
-    gemaraText: {
-        id: 'gemara-root-kid6b',
-        type: LogicType.PROOF,
         era: Era.AMORA,
-        speaker: 'Gemara',
-        hebrewText: 'אמר רבא: תן מנה לפלוני ואקדש אני לך - מקודשת מדין ערב. ערב לאו אף על גב דלא מטי הנאה לידיה קא משעבד נפשיה? האי איתתא נמי אף על גב דלא מטי הנאה לידה קא מקניא נפשה. הילך מנה והתקדשי לפלוני - מקודשת מדין עבד כנעני. עבד כנעני לאו אף על גב דלא קא חסר ולא מידי קא קני נפשיה? האי גברא נמי אף על גב דלא קא חסר ולא מידי קא קני לה להאי איתתא.',
-        englishText: 'Rava said: "Give a manah to Ploni (a third party) and I will be betrothed to you" - she is betrothed via the law of Arev (Guarantor). Just as a guarantor binds himself financially even though he receives no money into his own hand, so too this woman transfers herself (sanctification) even though she receives no money into her hand. \n\nCompare also: "Here is a Manah and be betrothed to Ploni" - she is betrothed based on the laws of a Canaanite Slave (who acquires freedom without paying).',
+        speaker: 'Gemara Kiddushin 5b',
+        hebrewText: 'אמר שמואל: בקידושין, נתן לה כסף ושוה כסף ואמר לה "הרי את מקודשת" "הרי את מאורסת"... הרי זו מקודשת. אבל אם נתנה היא ואמרה היא... אינה מקודשת. ואבעיא להו: "הריני אישך" "הריני בעליך"... מהו?',
+        englishText: 'Shmuel says: If he gives money and says "You are Mekudeshes", she is betrothed. If she gives and speaks, she is not. Question: What if he says "I am your husband"? Is this a valid "Yad" (Handle/Extension) for Kiddushin?',
         concepts: ['c2', 'c3'],
         children: []
     },
-    secondaryGemaraText: {
-        id: 'gemara-sec-bb173',
+    gemaraText: {
+        id: 'gemara-nedarim6b',
         type: LogicType.SOURCE,
         era: Era.AMORA,
-        speaker: 'Bava Basra 173b',
-        hebrewText: 'גמרא בבא בתרא (קעג:): אמר רב אשי, האי מאן דאמר ליה לחבריה קני האי חמרא ומשעבדנא לך, קני. מדין ערב. ערב מי קא שקיל מידי? לא, והא משתעבד. אף האי נמי, לא קא שקיל מידי ומשתעבד.',
-        englishText: 'Source for Arev Logic: Rav Ashi says, if one says "Acquire this donkey and I will be bound to pay you", he acquires it. Why? Law of Arev. Does an Arev take anything? No, yet he is bound.',
-        concepts: ['c2'],
+        speaker: 'Gemara Nedarim 6b',
+        hebrewText: 'בעי רב פפא: יש יד לקידושין או אין יד לקידושין? היכי דמי? אילימא... אלא כגון דאמר לה "הרי את" ולא אמר "מקודשת לי". מי אמרינן גבי נדרים הוא דכתיב "לנדור נדר" - דדמי לנדרים מהני, אבל גבי קידושין לא? או דלמא ילפינן קיחה קיחה משדה עפרון?',
+        englishText: 'Rav Papa asks: Is there "Yad" (Partial Speech) for Kiddushin? Case: He said "Behold you are..." but didn\'t finish "betrothed to me". Do we say "Yad" works only in Nedarim (derived from verse), or do we derive Kiddushin from transactions (Field of Ephron) where context helps?',
+        concepts: ['c2', 'c1'],
         children: []
     },
-    // PART 1: RISHONIM (Separated Logic)
+    secondaryGemaraText: {
+        id: 'gemara-kid49b',
+        type: LogicType.CASE,
+        era: Era.AMORA,
+        speaker: 'Kiddushin 49b',
+        hebrewText: 'ההוא גברא דזבין לנכסיה אדעתא למיסק לארץ ישראל. ובעידנא דזבין לא אמר ולא מידי. אמר רבא: הוי דברים שבלב, ודברים שבלב אינם דברים.',
+        englishText: 'A man sold his property intending to move to Israel. At the time of sale, he said nothing. Rava said: This is "Words in the Heart", and Words in the Heart are nothing (void). The sale stands even if he cannot move.',
+        concepts: ['c1', 'c5'],
+        children: []
+    },
+    // PART 1: RISHONIM (Detailed based on PDF)
     perspectives: [
         {
             id: 'seg-rashi',
             scholarName: 'Rashi',
-            scholarNameHebrew: 'רש"י',
-            description: 'Commentary on the text',
+            scholarNameHebrew: 'רש״י',
+            description: 'The primary commentary',
             rootNode: {
                 id: 'rashi-root',
                 type: LogicType.STATEMENT,
                 era: Era.RISHON,
                 speaker: 'Rashi',
-                hebrewText: 'מדין ערב - שהערב משתעבד למלוה ומתחייב לו לפרוע חובו, ואף על פי שלא הלוהו כלום, והכי קיימא לן (ב"ב קעג, ב) דערב משתעבד, ומפרש התם טעמא בההיא הנאה דקא מהימן ליה גמר ומשעבד נפשיה, הכא נמי בההיא הנאה דקא ציית לה ויהיב מנא לפלוני גמרה ומקניא נפשה. מדין עבד כנעני - דנפשיה קני ליה רבו וממונו של אדון הוא, וכי אמר ליה הילך מנה והוי בן חורין, אף על גב דאדון לא חסר מידי, דהא מנה דידיה הוא, אפילו הכי גמר ומקני ליה נפשיה.',
-                englishText: 'Rashi defines the mechanism: Arev works because of the benefit of trust ("Hana\'ah d\'ka meheinan lei"). The woman is betrothed because of the benefit that he listened to her ("Hana\'ah d\'ka tzayis lah"). He gives the money to Ploni, but her satisfaction creates the Kinyan.',
-                concepts: ['c4', 'c2'],
-                children: []
-            },
-            analysis: {
-                focus: "Definition of Benefit (Hana'ah)",
-                chiddush: "Equates the psychological satisfaction of obedience with monetary value.",
-                reasoning: "Money effects Kinyan via satisfaction. Here, satisfaction is achieved via the act of giving to Ploni."
+                hebrewText: 'פירוש רש"י על הסוגיא',
+                englishText: 'Rashi explains the basic terms and flow.',
+                concepts: [],
+                children: [
+                    {
+                        id: 'rashi-1',
+                        type: LogicType.STATEMENT,
+                        era: Era.RISHON,
+                        hebrewText: 'הרי את מקודשת לי - במתניתין תני האי לישנא, ובברייתא תני לישנא אחרינא דהוי נמי קידושין: הרי את מאורסת, הרי את אשתי.',
+                        englishText: '"Behold you are betrothed to me" - The Mishna teaches this phrasing. The Baraita lists other valid phrases like "Behold you are betrothed" or "Behold you are my wife".',
+                        concepts: [],
+                        children: []
+                    },
+                    {
+                        id: 'rashi-2',
+                        type: LogicType.STATEMENT,
+                        era: Era.RISHON,
+                        hebrewText: 'אינה מקודשת - דהוא נתן והיא אמרה, לאו כלום הוא, דכתיב כי יקח ולא כי תקח.',
+                        englishText: '"She is not betrothed" - Since he gave the money but she spoke the words, it is void. The verse says "When a man takes", implying he must be the active initiator of the bond.',
+                        concepts: [],
+                        children: []
+                    },
+                    {
+                        id: 'rashi-3',
+                        type: LogicType.STATEMENT,
+                        era: Era.RISHON,
+                        hebrewText: 'ספיקא היא - שמא נתרצה לה ויהיב לה על מנת כן, או שמא שחוק עשה בה.',
+                        englishText: '"It is a doubt" - If he gave and she spoke, and then he also spoke, maybe he consented to her condition, or maybe he was just mocking her. Thus, she is doubtfully betrothed.',
+                        concepts: [],
+                        children: []
+                    }
+                ]
             }
         },
         {
             id: 'seg-tosfos',
             scholarName: 'Tosfos',
             scholarNameHebrew: 'תוספות',
-            description: 'Analytical Difficulty',
+            description: 'Critical analysis',
             rootNode: {
                 id: 'tosfos-root',
-                type: LogicType.QUESTION,
+                type: LogicType.STATEMENT,
                 era: Era.RISHON,
                 speaker: 'Tosfos',
-                hebrewText: 'אף על גב דלא מטי הנאה לידיה - וא"ת גבי ערב גופיה מנלן דמשתעבד בלא קנין? וי"ל דסברא הוא דבההיא הנאה דקא מהימן ליה גמר ומשעבד נפשיה. ומיהו בסוף פרק גט פשוט (ב"ב קעג, ב) מייתי לה מקראי דשלמה. ועוד קשה, דהכא מדמה ליה לערב, וערב גופיה בעי קנין אם אין לו מעות, כדאמרינן (ב"ב קעו, א) ערב בשעת מתן מעות לא בעי קנין, לאחר מתן מעות בעי קנין!',
-                englishText: 'Tosfos asks: How do we know Arev itself works without a Kinyan? Answer: It is Svara (Logic). Benefit of trust creates binding. Challenge: But elsewhere we derive it from verses! And furthermore, Arev sometimes requires a Kinyan (after money is given). Here, "Ten Manah" implies the money is given now (B\'Shas Matan Maot), so no Kinyan Sudar is needed.',
-                concepts: ['c2', 'c1'],
-                children: []
-            },
-            analysis: {
-                focus: "Source of Arev",
-                chiddush: "Arev is primarily logical (Svara), independent of verses.",
-                reasoning: "The concept of 'Shibud' (Lien) can be generated by social dynamics (Trust/Hana'ah) alone."
+                hebrewText: 'קושיות ותירוצים של בעלי התוספות',
+                englishText: 'Tosfos analyzes deeper legal implications.',
+                concepts: [],
+                children: [
+                    {
+                        id: 'tosfos-1',
+                        type: LogicType.QUESTION,
+                        era: Era.RISHON,
+                        hebrewText: 'ואמר לה הרי את מקודשת - תימה, למה לי אמירה? והלא באדם חשוב עסקינן!',
+                        englishText: 'Question: "And he said to her..." - It is a wonder: Why is speech needed at all? Are we not dealing with a scenario where he is an important man (Adam Chashuv), where the benefit of her receiving money from him should create the bond automatically even without speech?',
+                        concepts: [],
+                        children: []
+                    },
+                    {
+                        id: 'tosfos-2',
+                        type: LogicType.ANSWER,
+                        era: Era.RISHON,
+                        hebrewText: 'וי"ל - דאפילו באדם חשוב, אי לא אמר מידי, הוי דברים שבלב.',
+                        englishText: 'Answer: One can answer - Even for an important man, if he says nothing, his intent remains "Words in the heart" (hidden intent), which are legally void. Speech is required to reveal the intent.',
+                        concepts: [],
+                        children: []
+                    }
+                ]
             }
         },
         {
-            id: 'seg-rambam',
-            scholarName: 'Rambam',
-            scholarNameHebrew: 'רמב"ם',
-            description: 'The Requirement of Speech',
+            id: 'seg-ritva',
+            scholarName: 'Ritva',
+            scholarNameHebrew: 'ריטב״א',
+            description: 'Context is Everything',
             rootNode: {
-                id: 'rambam-root',
+                id: 'ritva-root',
                 type: LogicType.STATEMENT,
                 era: Era.RISHON,
-                speaker: 'Rambam',
-                hebrewText: 'הרמב"ם (הלכות אישות פרק ה הלכה כה): האשה שאמרה לאיש תן דינר לפלוני ואתקדש אני לך, ונתן לו ואמר לה הרי את מקודשת לי בהנאת מתנה זו שנתתי על פיך - הרי זו מקודשת. אבל אם אמר לה הרי את מקודשת לי בדינר זה - אינה מקודשת, שהרי לא הגיע לידה. ואם לא אמר לה כלום - אינה מקודשת, שמשמעות הדברים שיהיה הדינר הזה קידושין, והרי אינו שלה.',
-                englishText: 'Rambam rules: He must say "Behold you are betrothed with the *benefit* of the gift I gave...". If he says "With this Dinar", it is invalid (she didn\'t get it). If he is silent, it is invalid (ambiguity).',
-                concepts: ['c3', 'c4'],
+                speaker: 'Ritva (Kid 6a)',
+                hebrewText: 'במאי עסקינן? אילימא בשאין מדבר עמה על עסקי גיטה וקידושיה... אלא כגון שהיה מדבר עמה על עסקי קידושיה, ונתן לה ולא פירש. התם ודאי קידושין אינון, דלדידהו לישני דמוכחי נינהו... וכיון דהוו לישנא דקידושין הרי זו מקודשת גמורה. ואפילו בשאין מדבר עמה... חזקה הוא דידע.',
+                englishText: 'Ritva explains: If they were discussing Kiddushin, and he gave money silently, it is valid. Why? Because the context makes the act explicit ("Yad Mochiach"). Even without speech, the "Chazaka" (Assumption) is that everyone knows the intent. "Harei At" is a clear idiom.',
+                concepts: ['c2', 'c5'],
                 children: []
             },
             analysis: {
-                focus: "Defining the Value",
-                chiddush: "The Kinyan is the 'Benefit', not the 'Money'. Therefore, the speech must designate the Benefit.",
-                reasoning: "Since the coin is not hers, silence implies the coin is the Kinyan (which fails). Speech redirects the Kinyan to the Benefit."
+                focus: "Role of Speech vs Context",
+                chiddush: "Speech is not constitutive; it is clarificatory. If context clears it up, speech is unnecessary.",
+                reasoning: "Transactions (Mamon) depend on 'Daas' (Intent). Context proves Daas."
+            }
+        },
+        {
+            id: 'seg-ran',
+            scholarName: 'Ran',
+            scholarNameHebrew: 'ר״ן',
+            description: 'Distinction: Nedarim vs Kiddushin',
+            rootNode: {
+                id: 'ran-root',
+                type: LogicType.REBUTTAL,
+                era: Era.RISHON,
+                speaker: 'Ran (Nedarim 6b)',
+                hebrewText: 'שאני נדרים דאפילו בדיבור בעלמא חיילי, משא"כ בקידושין שהן צריכין איזה מעשה כסף או שטר... הלכך בקידושין איכא למימר דלא מהני יד. והא מדאמר ליה רב פפא לאביי... מכלל דס"ל לרב פפא דיש יד לקידושין.',
+                englishText: 'The Ran argues: Nedarim are created solely by speech ("Dibur"), so the Torah expanded what counts as speech (Yad). Kiddushin requires an Act (Maaseh). Speech there is secondary. Therefore, partial speech ("Yad") might NOT work in Kiddushin. However, Rav Papa seems to assume there IS Yad.',
+                concepts: ['c2', 'c3'],
+                children: []
+            },
+            analysis: {
+                focus: "Mechanism of Chalot (Status)",
+                chiddush: "Nedarim = Chalot Dibur. Kiddushin = Chalot Maaseh.",
+                reasoning: "If the mechanism differs, the rules of speech (Yad) may not transfer."
+            }
+        },
+        {
+            id: 'seg-ramban',
+            scholarName: 'Ramban',
+            scholarNameHebrew: 'רמב״ן',
+            description: 'Dvarim Shebalev Exception',
+            rootNode: {
+                id: 'ramban-root',
+                type: LogicType.STATEMENT,
+                era: Era.RISHON,
+                speaker: 'Ramban (Kid 50a)',
+                hebrewText: 'אבל כל שהדברים שבלבו אינן מבטלין מעשיו אלא מקיימין כנזיר שאמר בלבי היה להיות כזה... הוו דברים. והא נמי דאמר רבא גלויי מלתא בגיטא מלתא היא... קסבר כיון שגלה דעתו אף על פי שאמר בדברים סתומים מ"מ לא הוו כדברים שבלב.',
+                englishText: 'Ramban qualifies "Dvarim Shebalev": Thoughts only fail if they *cancel* an act. But if they confirm it (like Nazir), they work. Also, if there is "Gilui Daas" (Revealed Intent) even if not explicit, it is not considered "Heart words" but valid words.',
+                concepts: ['c1', 'c5'],
+                children: []
+            },
+            analysis: {
+                focus: "Validating Intent",
+                chiddush: "Intent that aligns with the act or is partially revealed is valid.",
+                reasoning: "The rule 'Einan Dvarim' applies only when totally hidden and contradictory."
             }
         },
         {
             id: 'seg-rashba',
             scholarName: 'Rashba',
-            scholarNameHebrew: 'רשב"א',
-            description: 'Automatic Kinyan',
+            scholarNameHebrew: 'רשב״א',
+            description: 'Defining Dvarim Shebalev',
             rootNode: {
                 id: 'rashba-root',
-                type: LogicType.REBUTTAL,
+                type: LogicType.STATEMENT,
                 era: Era.RISHON,
-                speaker: 'Rashba',
-                hebrewText: 'הרשב"א (חידושים דף ז): ואיני יודע מי דחקו לזה... ואדרבה לכאורה משמע דכל כהאי גוונא קרוב הוא להיות כהילך מנה ואתקדש אני לך... משמע דמדין ערב קאמר, דחלה עליה קידושין ממילא בנתינה זו לפלוני, כמו שחלה על הערב שעבוד ממילא באותה נתינה שלוה מלוה את הלוה.',
-                englishText: 'Rashba argues: The Gemara compares it to Arev. In Arev, the guarantor does not say "I bind myself via the benefit". The binding happens *automatically* when the lender gives the money. So too here, the betrothal should happen automatically upon giving to Ploni.',
-                concepts: ['c2', 'c3'],
+                speaker: 'Rashba (Kid 50a)',
+                hebrewText: 'ואסיקנא דדברים שבלב אינן דברים. ר"ת ז"ל הקשה מהא דתנן במס\' תרומות... ותירץ דשאני התם משום דבעינן פיו ולבו שוין. אבל הכא שאומר מה שבלבו לומר אף על פי שאין לבו רוצה במה שגמר בלבו... דברים שבלב הן ואינן דברים.',
+                englishText: 'Rashba addresses Rabbeinu Tam\'s question from Terumot (where intent matters). He distinguishes: In Kodshim/Nedarim, "Mouth and Heart must match". But in transactions (Kiddushin), internal reluctance ("I didn\'t really want to") is void if the external speech/act was standard. This defines "Dvarim Shebalev" as unexpressed reservations.',
+                concepts: ['c1', 'c3'],
                 children: []
             },
             analysis: {
-                focus: "Nature of the Comparison",
-                chiddush: "Arev is a mechanism of 'Constructive Action', not just 'Benefit Exchange'.",
-                reasoning: "If Arev is automatic, Kiddushin M'Din Arev must be automatic.",
-                dispute: "Disputes Rambam's need for speech."
+                focus: "Internal vs External Will",
+                chiddush: "Transactions require objective intent (manifested), not subjective desire.",
+                reasoning: "Social stability requires relying on actions/words, not hidden thoughts."
             }
         }
     ],
-    // PART 2: ACHRONIM (Deep Lomdus)
+    // PART 2: ACHRONIM (Birchas Shmuel Deep Dive)
     achronimPerspectives: [
         {
             id: 'seg-birchas-shmuel',
             scholarName: 'Birchas Shmuel',
             scholarNameHebrew: 'ברכת שמואל',
-            description: 'Siman 1: Nesina vs Hana\'ah',
+            description: 'Siman 1: Daas vs Dibur',
             rootNode: {
                 id: 'bs-root',
-                type: LogicType.STATEMENT,
-                era: Era.ACHRON,
-                speaker: 'Birchas Shmuel',
-                hebrewText: 'בביאור המחלוקת (קידושין סימן א): יש לחקור בדין ערב, האם נתינת המלוה ללוה חשיב כנתינה להערב (כאילו הערב קיבל ונתן ללוה), ונמצא דהערב משתעבד מחמת "כסף" שקיבל (על ידי הלוה), או דנימא דגוף הכסף אינו נחשב כניתן להערב כלל, רק דהערב משעבד נפשיה בההיא הנאה דהימניה. \n\nונראה דבזה פליגי הרמב"ם והרשב"א. הרשב"א סובר דמדין ערב הוי כנתינה ממש, ואם כן הוי כנתן לה כסף קידושין, ולא בעי דיבור. אבל הרמב"ם סובר דמדין ערב אינו אלא קנין הנאה, וכיון דהקידושין חלין על ההנאה, צריך לייחד הדיבור לההנאה.',
-                englishText: 'The Chakira: Is Arev "Constructive Giving" (The lender gave to the guarantor via the borrower) or "Benefit Binding" (The guarantor never received money, only benefit)? \n\nApplication: Rashba holds Arev = Giving. Thus, "Ten Manah" is like giving her money. No speech needed. Rambam holds Arev = Benefit. Thus, "Ten Manah" is a purchase via abstract benefit. Abstract value requires explicit definition via speech.',
-                concepts: ['c2', 'c3', 'c5'],
-                children: []
-            },
-            analysis: {
-                focus: "The Definition of Arev",
-                chiddush: "The dispute is not about the laws of Kiddushin speech, but the definition of the Arev mechanism itself.",
-                reasoning: "Objective Act (Nesina) vs Subjective Exchange (Hana'ah).",
-                dispute: "Explains the root of Rambam/Rashba."
-            }
-        },
-        {
-            id: 'seg-machane-efraim',
-            scholarName: 'Machane Efraim',
-            scholarNameHebrew: 'מחנה אפרים',
-            description: 'Hilchos Malveh (Ribis)',
-            rootNode: {
-                id: 'me-root',
                 type: LogicType.PROOF,
                 era: Era.ACHRON,
-                speaker: 'Machane Efraim',
-                hebrewText: 'הלכות מלוה ולוה (דיני ריבית סי\' יא): מי שאמר לחבירו תן מנה ללוי מתנה ואלוה לך מעות, ושילם לו הלוה ריבית... יש לחקור אם הוי ריבית דאורייתא. \n\nאם נאמר "תן מנה לפלוני" הוי כנתינה למבקש (מדין ערב כרשב"א), אם כן הלוה נתן את המתנה ללוי מכוחו של המלוה, והוי כאילו המלוה נתן ללוי, ואין כאן ריבית ישירה מהלוה למלוה. אבל אם נאמר דהוי רק הנאה (כרמב"ם), נמצא שהלוה שילם למלוה בעד ההנאה, ויש לדון בזה משום ריבית מוקדמת או מאוחרת.',
-                englishText: 'Does "Ten Manah" create agency? If I say "Give to Levi and I will pay you back", did I give to Levi (via you) or did you give to Levi (for my benefit)? \n\nIf Arev = Giving (Rashba), the money legally passed through me. If Arev = Benefit (Rambam), the money went straight to Levi, and I just paid for the benefit.',
-                concepts: ['c2', 'c4'],
+                speaker: 'Birchas Shmuel',
+                hebrewText: 'יש לחקור בקידושין, אי הוי חלות דיבור כמו תרומה וקדשים ונדרים, או דנימא דבקידושין הדיבור אינו אלא לגלות על הכוונה והרצון... \nונראה דחלוק יסוד דין קידושין מדין קדשים. דבקדשים בעינן "פיו ולבו שוין" מדין דיבור, אבל בקידושין הדיבור הוא רק גילוי דעת על המעשה.',
+                englishText: 'Chakira: Is Kiddushin a "Speech-Created Status" (like Vows/Offerings) or an "Act-Created Status" where speech just reveals intent? \nConclusion: They are fundamental opposites. In Kodshim, speech creates reality, so "Mouth and Heart must match". In Kiddushin, the Act creates reality, speech just clarifies "Daas". Therefore, "Yad" (Partial Speech) is harder to apply to Kiddushin because the verse creating "Yad" discusses Speech-Acts (Nedarim).',
+                concepts: ['c3', 'c1', 'c2'],
                 children: []
             },
             analysis: {
-                focus: "Halachic Consistency",
-                chiddush: "Shows that the definition of 'Ten Manah' impacts Usury laws.",
-                reasoning: "Ownership transfer paths determine Ribis liability."
+                focus: "Categorization of Halachic Acts",
+                chiddush: "Kiddushin is a Mamon (Monetary) act, not an Issur (Prohibition) act like Nedarim.",
+                reasoning: "Proof from 'Dvarim Shebalev': In Kiddushin, hidden thoughts are ignored (Act dominates). In Nedarim, hidden thoughts can invalidate (Heart dominates)."
             }
         },
         {
-            id: 'seg-ketzos',
-            scholarName: 'Ketzos HaChoshen',
-            scholarNameHebrew: 'קצות החושן',
-            description: 'Siman 190: Shtar & Arev',
+            id: 'seg-ra-eiger',
+            scholarName: 'R. Akiva Eiger',
+            scholarNameHebrew: 'רע״א',
+            description: 'Sfek Sfeika in Ten Manah',
             rootNode: {
-                id: 'ketzos-root',
-                type: LogicType.STATEMENT,
+                id: 'rae-root',
+                type: LogicType.QUESTION,
                 era: Era.ACHRON,
-                speaker: 'Ketzos',
-                hebrewText: 'קצות החושן (סימן קצ ס"ק א): ולכאורה קשה על שיטת הרשב"א, אם אנו רואים את הנתינה לפלוני כאילו ניתנה לאשה, איך זה פועל? הרי "ממון" צריך להגיע ליד המקבל! \n\nאלא צריך לומר דהרשב"א סובר דמדין "עבד כנעני" ילפינן שניתן לקנות על ידי סילוק וגרימת הנאה גם בלי תורת כסף ממש. כלומר, "כסף" בקידושין אינו דוקא מטבע, אלא כל דבר שיש בו שוויו, וגם נתינה לאחר נחשבת שוויו לגבי האשה.',
-                englishText: 'The Ketzos challenges the "Constructive Giving" idea. Money must physically travel! He refines the Rashba: We learn from Eved Cnaani that "Money" in Kiddushin doesn\'t mean physical currency, but "Value". Giving to Ploni creates "Value" for the woman, which equals "Money".',
-                concepts: ['c3', 'c1'],
+                speaker: 'R\' Akiva Eiger',
+                hebrewText: 'והנה הטור כתב בשם הרמ"ה בנתן הוא ואמרה היא דהוי ספק קידושין... ובמשנה למלך העלה דזהו רק אם נפרש דספיקא הוי היינו אם נתן הבעל לשם קידושין או לשם מתנה... אבל אם נפרש דהספק הוא כיון שנגמר בדיבורה הוי כי תלקח, גם עניית הבעל הן לא מהני.',
+                englishText: 'R\' Akiva Eiger analyzes the doubt in "Ten Manah". Is the doubt factual (Did he mean Kiddushin?) or legal (Does her speech work?). If legal, maybe his answering "Yes" doesn\'t help! He connects this to a Double Doubt (Sfek Sfeika) regarding intent vs. formal speech.',
+                concepts: ['c2', 'c1'],
                 children: []
             },
             analysis: {
-                focus: "Definition of Kesef",
-                chiddush: "Kesef is 'Value', not 'Currency'.",
-                reasoning: "Eved Cnaani proves non-monetary value effects acquisition."
+                focus: "Analyzing the Safek",
+                chiddush: "The definition of the doubt determines if we can be lenient or strict.",
+                reasoning: "Legal doubts regarding mechanism (Kicha) are harder to resolve than factual doubts regarding intent."
+            }
+        },
+        {
+            id: 'seg-chasam-sofer',
+            scholarName: 'Chasam Sofer',
+            scholarNameHebrew: 'חתם סופר',
+            description: 'Ambiguity of "Li"',
+            rootNode: {
+                id: 'cs-root',
+                type: LogicType.STATEMENT,
+                era: Era.ACHRON,
+                speaker: 'Chasam Sofer (Ned 4b)',
+                hebrewText: 'והנה האומר הרי את מקודשת ואינו אומר לי מבואר בש"ע סי\' כ"ז דמעיקר הדין אין כאן בית מיחוש אלא שרמ"א הגיה שיש מחמירים... ולהנ"ל קשה הא בלא לי נמי לא הוה אפילו יד ואפ"ה הוה בעי למימר דמקודשת.',
+                englishText: 'Discusses the Shulchan Aruch regarding saying "Mekudeshes" without "Li" (to me). Primarily it should be valid, but Rema is strict. Chasam Sofer questions this based on the Gemara: if "Li" is missing, is it even a "Yad" (Handle)? It should be valid based on context.',
+                concepts: ['c2'],
+                children: []
+            },
+            analysis: {
+                focus: "Minimal Speech Requirements",
+                chiddush: "Even omitting 'Li' might be valid if context exists, contradicting the need for a 'Yad'.",
+                reasoning: "The essence is the intent (Daas), not the formula."
+            }
+        },
+        {
+            id: 'seg-pnei-yehoshua',
+            scholarName: 'Pnei Yehoshua',
+            scholarNameHebrew: 'פני יהושע',
+            description: 'Rav Papa\'s Question on Yad',
+            rootNode: {
+                id: 'py-root',
+                type: LogicType.QUESTION,
+                era: Era.ACHRON,
+                speaker: 'Pnei Yehoshua (Kid 5a)',
+                hebrewText: 'שם אמר ליה רב פפא לאביי למימרא דסבר שמואל ידים שאין מוכיחות כו\'. וקשיא לי מאי קס"ד דרב פפא דשמואל בדלא אמר לי איירי הא רב פפא גופא איבעיא ליה בפ"ק דנדרים אי יש יד לקידושין.',
+                englishText: 'Pnei Yehoshua asks a contradiction: Rav Papa here assumes Shmuel holds "Yad" works (or doesn\'t). But in Nedarim, Rav Papa himself asks if "Yad" even exists for Kiddushin! He resolves it by distinguishing between "Yad" for the object (Hekdesh) vs. the act.',
+                concepts: ['c2'],
+                children: []
+            },
+            analysis: {
+                focus: "Consistency of Talmudic Sages",
+                chiddush: "Distinction between types of Yad.",
+                reasoning: "Rav Papa's doubt in Nedarim is fundamental, while here he analyzes Shmuel's specific case."
             }
         },
         {
             id: 'seg-avnei-miluim',
             scholarName: 'Avnei Miluim',
             scholarNameHebrew: 'אבני מילואים',
-            description: 'Siman 27: Intent',
+            description: 'Role of Witnesses',
             rootNode: {
                 id: 'am-root',
                 type: LogicType.STATEMENT,
                 era: Era.ACHRON,
-                speaker: 'Avnei Miluim',
-                hebrewText: 'אבני מילואים (סימן כז): ולענין עדים, האם צריך עדים על גמירות דעתה? הרי בדרך כלל המעשה (קבלת הכסף) מוכיח על הרצון. כאן, שאין הנאה גשמית, וכל הקנין הוא "הנאה" פסיכולוגית, אולי צריך עדים שהיא אכן נהנית? \n\nמסיק האבני מילואים: כיון דעיקר הקידושין הוא מעשה הבעל לקדש, והאשה רק צריכה להסכים, לא בעינן עדים על ההנאה הפנימית שלה. העדים צריכים לראות את המעשה (נתינה לפלוני) ואת האמירה. הסכמתה היא תנאי צדדי שמתברר למפרע.',
-                englishText: 'Deep dive into "Daas" (Intent). Since the Kinyan is "Satisfaction", do witnesses need to verify she is satisfied? \n\nConclusion: No. Kiddushin is the Man\'s act. Witnesses verify *his* act. Her consent is a condition, not the act itself. If she is silent and accepts it, we assume consent even without witnessing her internal state.',
-                concepts: ['c3', 'c1'],
+                speaker: 'Avnei Miluim (27:6)',
+                hebrewText: 'אם הבינה דבריו... ומשמע דאפי\' אין העדים יודעין אם הבינה הוי קידושי ודאי... ואפשר כיון דעיקר הקידושין מצד המקדש... אבל רצון האשה לא בעי עדים וסגי בהודאתה.',
+                englishText: 'Avnei Miluim asserts that witnesses are required for the Act of the husband, but not necessarily for the Consent of the wife. If she admits she understood, it is valid even if witnesses didn\'t know her mind. This relies on the idea that "Kicha" (Taking) is the primary act.',
+                concepts: ['c1'],
                 children: []
             },
             analysis: {
-                focus: "Role of Witnesses (Edim)",
-                chiddush: "Edim testify on the Maaseh (Act), not the Daas (Intent).",
-                reasoning: "Distinction between the constitutive act of marriage and the precondition of consent."
+                focus: "Witness Requirement Scope",
+                chiddush: "Edim (Witnesses) are for the Maaseh (Act), not the Daas (Intent) of the recipient.",
+                reasoning: "Kiddushin is a unilateral act of acquisition by the man, requiring only consent (not active acquisition) from the woman."
             }
         }
     ],
     analysis: [
-        { id: 'kid6b-ana-1', category: 'CASE', title: 'Ten Manah L\'Ploni', description: 'Woman says: "Give money to a third party, and I will be betrothed to you."', refId: 'base-text-kid6b' },
-        { id: 'kid6b-ana-2', category: 'LAW', title: 'Mekudeshes (Betrothed)', description: 'She is betrothed, even though she received no money directly.', refId: 'base-text-kid6b' },
-        { id: 'kid6b-ana-3', category: 'FACTOR', title: 'Hana\'ah (Benefit)', description: 'The pleasure of her will being done substitutes for money.', refId: 'rashi-root' },
-        { id: 'kid6b-ana-4', category: 'SOURCE', title: 'Arev (Guarantor)', description: 'Derived from the law that one can be bound by a loan given to another.', refId: 'gemara-root' },
+        { id: 'kid6b-ana-1', category: 'CASE', title: 'Ten Manah Ambiguity', description: 'Ambiguous speech during money transfer.', refId: 'gemara-kid5b' },
+        { id: 'kid6b-ana-2', category: 'LAW', title: 'Yad (Handle)', description: 'Can partial speech create a valid Kiddushin?', refId: 'gemara-nedarim6b' },
+        { id: 'kid6b-ana-3', category: 'FACTOR', title: 'Dvarim Shebalev', description: 'Conflict between external act and internal intent.', refId: 'gemara-kid49b' },
+        { id: 'kid6b-ana-4', category: 'SOURCE', title: 'Nedarim vs Kiddushin', description: 'Comparison of legal mechanisms (Speech vs Act).', refId: 'bs-root' },
     ],
     psakChain: [
         { 
             id: 'psak-kid6b-1', 
             authority: 'Shulchan Aruch', 
-            citation: 'Even HaEzer 29:1', 
-            text: 'אמרה לו תן מנה לפלוני ואתקדש אני לך, מקודשת מדין ערב.', 
-            ruling: 'If she says "Give a manah to Ploni and I will be betrothed to you", she is betrothed via the law of Arev.', 
-            basedOn: ['kid-6b-gemara'] 
+            citation: 'Even HaEzer 27', 
+            text: 'המקדש בלא דיבור, או בדיבור שאינו מפורש - הרי זו ספק מקודשת.', 
+            ruling: 'Kiddushin without explicit speech or with ambiguous speech results in "Safek Mekudeshes" (Doubtful Betrothal).', 
+            basedOn: ['gemara-nedarim6b'] 
         },
         { 
             id: 'psak-kid6b-2', 
             authority: 'Rema', 
-            citation: 'Even HaEzer 29:1', 
-            text: 'ויש אומרים שצריך לומר לה בהנאה זו... ולכתחילה טוב לחוש לדבריהם.', 
-            ruling: 'Some say (Rambam) he must explicitly tell her "with this benefit". Initially, one should be concerned for this view.', 
-            basedOn: ['rambam-view'] 
+            citation: 'Even HaEzer 42', 
+            text: 'דברים שבלב אינם דברים, ואפילו ידענו שבלבו לא היה כן, בטלה מחשבתו אצל מעשהו.', 
+            ruling: 'Thoughts in the heart are nothing. Even if we know his heart meant otherwise, his thought is nullified by his deed.', 
+            basedOn: ['gemara-kid49b'] 
         }
     ],
     shulchanAruch: {
-        siman: "כט",
+        siman: "כז",
         seif: "א",
         mainText: [
-            { type: 'MECHABER', text: "אמרה לו תן מנה לפלוני ואתקדש אני לך, מקודשת מדין ערב: שהערב משתעבד ולא קבל מעות, אף זו מקנית עצמה ולא קבלה מעות.", translation: "If she said to him: 'Give a manah to Ploni and I will be betrothed to you', she is betrothed based on the law of Arev: Just as a guarantor is bound without receiving money, she transfers herself without receiving money." },
-            { type: 'REMA', text: "ויש אומרים שצריך שיאמר לה: הרי את מקודשת לי בהנאת מתנה זו שנתתי לפלוני. (ולכתחילה נכון לחוש לדבריהם).", translation: "And some say he must say to her: 'Behold you are betrothed to me with the benefit of this gift that I gave to Ploni'. (And initially one should regard their words)." }
+            { type: 'MECHABER', text: "המקדש, צריך שיאמר לה בשעת מתן כסף או שטר: הרי את מקודשת לי... אבל אם נתן לה ולא אמר כלום, אף על פי שהיו עסוקים באותו ענין - הרי זו ספק מקודשת.", translation: "One who betroths must say at the time of giving: 'Behold you are betrothed to me'. But if he gave and said nothing, even if they were discussing the topic - she is doubtfully betrothed." },
+            { type: 'REMA', text: "ויש אומרים דהוי קידושין ודאי (רמב'ם). והכי נהוג להחמיר.", translation: "Some say it is definite Kiddushin (Rambam). And such is the custom to be strict." }
         ],
         mishnaBrura: [
-            { id: 'mb-1', noteChar: 'א', text: "מדין ערב - הדין דין אמת, אלא שהסברא היא מדין ערב. ואע\"ג דבקידושין בעינן כסף דוקא, הנאה שווה כסף.", translation: "Law of Arev - The ruling is accepted law. Even though Kiddushin usually requires money, 'Benefit' is considered money equivalent." },
-            { id: 'mb-2', noteChar: 'ב', text: "בהנאת מתנה - הטעם כדמפרש המגיד משנה, דכיון דלא מטי הנאה לידה, לא גמרה ומקניא נפשה בסתמא, אלא אם כן פירש לה.", translation: "With the benefit of the gift - The reason, as the Maggid Mishneh explains, is that since she receives no direct pleasure, she does not resolve to betroth herself implicitly unless he explicitly states it." }
+            { id: 'mb-1', noteChar: 'א', text: "ספק מקודשת - משום דמספקא לן בגמרא אי הוי ידים או לא.", translation: "Doubtfully betrothed - Because the Gemara is in doubt whether 'Yad' (Partial Speech) works." },
+            { id: 'mb-2', noteChar: 'ב', text: "עסוקים באותו ענין - זהו רק כשהוכיח סופו על תחילתו.", translation: "Discussing the topic - This helps only if the end proves the beginning." }
         ],
         shulchanAruchHarav: [
-            { id: 'sh-1', text: "באר היטב: עיין בבית שמואל ס\"ק א' שכתב דבלא אמירה הוי ספק מקודשת לחומרא, וצריכה גט מספק.", translation: "Ba'er Heteyv: See Beis Shmuel SK 1, who writes that without the explicit speech, she is 'Doubtfully Betrothed' strictly, and requires a Get out of doubt." },
-            { id: 'sh-2', text: "חלקת מחוקק: אם אמר לה 'הרי את מקודשת לי' סתם, ולא פירש 'בהנאה זו', הוי פלוגתא דרבוותא.", translation: "Chelkas Mechokek: If he just said 'You are betrothed to me' without adding 'with this benefit', it is a dispute among the authorities." }
+            { id: 'sh-1', text: "ביאור הגר\"א: דברי הרמב\"ם עיקר, שכיון שעסוקים בעניין, הרי זה כפירוש דמי.", translation: "Biur HaGra: The Rambam is primary, since they are discussing the matter, it is considered as if explicitly stated." }
         ]
     },
     logicSystem: {
         statements: [
-            { text: 'תן מנה לפלוני', type: 'Maaseh', color: 'blue', analysis: { subject: 'Act of Giving', predicate: 'Transfer to Third Party', statementType: 'Action', reason: 'Requested by Woman' } },
-            { text: 'מדין ערב', type: 'Heikesh', color: 'amber', analysis: { subject: 'Legal Mechanism', predicate: 'Guarantor Logic', statementType: 'Derivation', reason: 'Binding without Receipt' } },
-            { text: 'מקודשת', type: 'Din', color: 'green', analysis: { subject: 'Status', predicate: 'Betrothed', statementType: 'Legal Ruling', reason: 'Valid Kinyan via Hanaah/Nesina' } }
+            { text: 'אומר אהא הרי זה נזיר', type: 'Premise 1', color: 'blue', analysis: { subject: 'Nazir', predicate: 'Valid via Yad', statementType: 'Source Case', reason: 'Torah amplifies speech in Nedarim' } },
+            { text: 'יש יד לקידושין', type: 'Hypothesis', color: 'amber', analysis: { subject: 'Kiddushin', predicate: 'Valid via Yad?', statementType: 'Inquiry', reason: 'Compare to Nedarim or Transactions?' } },
+            { text: 'דברים שבלב אינם דברים', type: 'Principle', color: 'green', analysis: { subject: 'Intent', predicate: 'Void vs Act', statementType: 'Rule', reason: 'Maaseh (Act) is stronger than Daas (Thought)' } }
         ],
         syllogism: {
-            premise1: 'A guarantor (Arev) creates a legal bond (Shibud) solely through the benefit of trust, without receiving assets.',
-            premise2: 'Kiddushin is a legal bond that can be effected by whatever mechanism effects a monetary bond (Mamon).',
-            conclusion: 'Therefore, a woman can effect Kiddushin by the benefit of her request being fulfilled (giving to a third party), akin to Arev.'
+            premise1: 'In Nedarim, speech creates the status, so implied speech (Yad) is sufficient (Piv V\'Libo Shavin).',
+            premise2: 'In Kiddushin, the Act creates the status, and speech merely reveals intent (Gilui Daas).',
+            conclusion: 'Therefore, strict laws of Speech (Yad) from Nedarim might not apply to Kiddushin; Context/Act might be enough (or insufficient depending on the Safek).'
         }
     },
     modernAnalysis: [
         { 
             id: 'ma-1', 
-            title: 'Corporate Guarantee', 
-            scenario: 'A parent company guarantees a loan for a subsidiary. The parent receives no money, but is legally bound.', 
-            parallels: 'Exact parallel to Arev. The parent company binds itself based on the "benefit" of the subsidiary getting the loan.', 
-            ruling: 'Legally binding obligation.',
+            title: 'Click-Wrap Agreements', 
+            scenario: 'Clicking "I Agree" without reading terms. Is the "Act" of clicking binding even if the "Heart" (Intent) didn\'t know the terms?', 
+            parallels: 'Dvarim Shebalev. The external act creates the legal bond, ignoring internal lack of intent.', 
+            ruling: 'Binding.',
             deepAnalysis: {
-                yesod: 'Does legal binding require direct benefit, or can the "pleasure of being trusted" (Hana\'ah) substitute for assets?',
+                yesod: 'Does the Act define the legal reality (Maaseh) or does the Intent (Daas)?',
                 perspectives: [
                     { 
-                        authority: 'Rashba (Constructive Action)', 
-                        logic: 'Giving the loan to the subsidiary is considered a direct legal act towards the parent company. The money "bypasses" but the legal effect hits the guarantor.', 
-                        outcome: 'Binding immediately upon loan transfer, no extra speech needed.' 
+                        authority: 'Rava (Dvarim Shebalev)', 
+                        logic: 'The act of clicking is an objective acceptance. "Words in the heart" (I didn\'t mean it) are void.', 
+                        outcome: 'Valid Contract.' 
                     },
                     { 
-                        authority: 'Rambam (Benefit Exchange)', 
-                        logic: 'The parent company receives no assets. They are "buying" the trust/benefit. Since "Benefit" is abstract, they must explicitly state "I bind myself for this benefit".', 
-                        outcome: 'Only binding if the guarantee agreement explicitly references the "benefit" of the loan.' 
-                    },
-                    { 
-                        authority: 'Psak (Shulchan Aruch)', 
-                        logic: 'We rule like the Rashba regarding monetary Arev (automatic), but in Kiddushin we suspect for the Rambam.', 
-                        outcome: 'Binding in civil law (monetary). In marriage, requires explicit speech to be 100% valid.' 
+                        authority: 'Ramban (Umdana)', 
+                        logic: 'If it is an Umdana (Universal Assumption) that nobody reads these, perhaps there is no Daas.', 
+                        outcome: 'Possible invalidation if proven lack of Daas is universal.' 
                     }
                 ]
             }
         },
         { 
             id: 'ma-2', 
-            title: 'Digital Wallets & Venmo', 
-            scenario: 'Person A tells Person B: "Pay the store for me, and I will transfer the car title to you."', 
-            parallels: 'Constructive Agency (Brisker view). The payment to the store is considered a payment "to" the owner via instruction.', 
-            ruling: 'Valid transaction.',
+            title: 'Venmo "Pizza" Memo', 
+            scenario: 'Sending money with a vague emoji or memo. Does the context (previous text messages) define the transfer as a Loan or Gift?', 
+            parallels: 'Yad & Asukin B\'Oto Inyan (Discussing the topic).', 
+            ruling: 'Context determines validity.',
             deepAnalysis: {
-                yesod: 'Is a digital instruction considered "Money" (Kesef) or just a "Command" (Tzivui)?',
+                yesod: 'Is explicit speech required for transaction definition, or does context suffice?',
                 perspectives: [
                     { 
-                        authority: 'Ketzos HaChoshen', 
-                        logic: 'Money in Halacha is defined by "Value" (Shaveh Kesef), not physical currency. Since the instruction releases a debt, it has value.', 
-                        outcome: 'Valid Kinyan. The instruction itself is the money.' 
+                        authority: 'Ritva (Context)', 
+                        logic: 'If they were discussing the loan previously, the transfer is defined by that context ("Muchach").', 
+                        outcome: 'Defined as Loan.' 
                     },
                     { 
-                        authority: 'Simple Reading (Arev)', 
-                        logic: 'The instruction is not money. The mechanism is Arev - I bind the car title to you because of the benefit that you listened to my instruction.', 
-                        outcome: 'Valid Kinyan, but based on Benefit (Hana\'ah), not Money.' 
-                    },
-                    { 
-                        authority: 'Practical Impact', 
-                        logic: 'If it is "Money", we need witnesses on the value. If it is "Arev", we need witnesses on the instruction.', 
-                        outcome: 'Ideally, ensure both value and instruction are clear.' 
+                        authority: 'Shmuel (Strict Yad)', 
+                        logic: 'If the memo is ambiguous ("Pizza emoji"), maybe it fails to define the money as a loan repayment.', 
+                        outcome: 'Ambiguous.' 
                     }
                 ]
             }
         }
     ],
     visualFlow: [
-        { id: 'vf-1', label: 'Woman: "Give to Ploni"', type: 'ACTION', status: 'NEUTRAL', description: 'She instructs the man to give money to a third party.' },
-        { id: 'vf-2', label: 'Man Gives Money', type: 'ACTION', status: 'VALID', description: 'He hands the money to Ploni.' },
+        { id: 'vf-1', label: 'Man gives Money', type: 'ACTION', status: 'NEUTRAL', description: 'Maaseh Netina occurs.' },
         { 
-            id: 'vf-3', 
-            label: 'Check: Explicit Speech?', 
+            id: 'vf-2', 
+            label: 'Did he Speak?', 
             type: 'QUESTION', 
-            status: 'DISPUTED', 
-            description: 'Did he say "Behold.. with this benefit"?',
+            status: 'NEUTRAL', 
             branches: [
-                { id: 'vf-4a', label: 'Yes (Explicit)', type: 'RESULT', status: 'VALID', description: 'Mekudeshes (Acc. to Everyone).' },
-                { id: 'vf-4b', label: 'No (Silent)', type: 'RESULT', status: 'DISPUTED', description: 'Valid acc. to Rashba, Invalid acc. to Rambam -> Safek Kiddushin.' }
+                { id: 'vf-3a', label: 'Yes: "Mekudeshes"', type: 'RESULT', status: 'VALID', description: 'Valid Kiddushin.' },
+                { 
+                    id: 'vf-3b', 
+                    label: 'No (Silence)', 
+                    type: 'QUESTION', 
+                    status: 'DISPUTED',
+                    description: 'Were they discussing Kiddushin?',
+                    branches: [
+                        { id: 'vf-4a', label: 'Yes (Asukin)', type: 'RESULT', status: 'VALID', description: 'Valid acc to Ritva/Rambam (Context).' },
+                        { id: 'vf-4b', label: 'No', type: 'RESULT', status: 'INVALID', description: 'Invalid (Ambiguous).' }
+                    ]
+                },
+                {
+                    id: 'vf-3c',
+                    label: 'Partial ("Yad")',
+                    type: 'QUESTION',
+                    status: 'DISPUTED',
+                    description: 'Said "Harei At..." (unfinished).',
+                    branches: [
+                        { id: 'vf-5a', label: 'Like Nedarim?', type: 'DECISION', status: 'INVALID', description: 'Safek (Rav Papa). Comparison to Vows is unclear.' }
+                    ]
+                }
             ]
         }
     ]
@@ -443,11 +609,11 @@ export const MOCK_SUGYA = KID_6B_DEEP_DATA;
 export const AVAILABLE_SUGYAS = [
     {
         id: 'kid-6b-deep',
-        title: 'Kiddushin 6b: Ten Manah',
+        title: 'Kiddushin: Speech & Intent',
         masechta: 'Kiddushin',
         masechtaHebrew: 'קידושין',
-        daf: '6b',
-        description: 'Analysis of Kiddushin via Arev (Guarantor) mechanism. Deep dive into Rishonim & Achronim.',
+        daf: '5b',
+        description: 'Analysis of Yad, Dvarim Shebalev, and the definition of Maaseh Kiddushin vs Nedarim.',
         color: 'bg-slate-900',
         hasContent: true,
         data: KID_6B_DEEP_DATA
@@ -484,6 +650,6 @@ export const TURIM = [
 // Mock Simanim for Halacha Mode
 export const SIMANIM_MOCK: Record<string, {id: string, label: string, desc: string, linkedSugyaId?: string}[]> = {
     'eh': [
-        { id: '29', label: 'Siman 29', desc: 'Kiddushin via Arev & Eved Cnaani', linkedSugyaId: 'kid-6b-deep' }
+        { id: '27', label: 'Siman 27', desc: 'Laws of Kiddushin Acts & Intent', linkedSugyaId: 'kid-6b-deep' }
     ]
 };

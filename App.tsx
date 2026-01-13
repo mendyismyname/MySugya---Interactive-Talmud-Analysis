@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { MOCK_SUGYA, INITIAL_CONCEPTS, AVAILABLE_SUGYAS } from './constants';
 import { LogicNodeCard } from './components/LogicNodeCard';
@@ -14,7 +13,7 @@ import { LogicNode, Concept, StudyStage } from './types';
 import { 
     BookOpen, Settings, BrainCircuit, X, ChevronRight, Layers, Book, 
     SidebarClose, SidebarOpen, ZoomIn, Map, Home, Lightbulb, ListTree, GripHorizontal,
-    ChevronDown, Search, Gavel, FileText, Network, Sparkles, Workflow, ExternalLink, Video, GitFork
+    ChevronDown, Search, Gavel, FileText, Network, Sparkles, Workflow, ExternalLink, Video, GitFork, Menu
 } from 'lucide-react';
 import { explainConcept, generateComparison, generateSugyaDeepData } from './services/geminiService';
 
@@ -36,7 +35,7 @@ const App: React.FC = () => {
   // UI State
   const [expandedConceptId, setExpandedConceptId] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<LogicNode | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1024);
   const [sidebarTab, setSidebarTab] = useState<'OUTLINE' | 'CONCEPTS'>('OUTLINE');
   
   // Resize State
@@ -58,8 +57,7 @@ const App: React.FC = () => {
           setSelectedNode(null);
           setActivePerspectiveId(null);
           setActiveSource('CHUMASH'); // Start with Chumash by default
-          // Auto-open sidebar on new sugya for context
-          setIsSidebarOpen(true);
+          setIsSidebarOpen(window.innerWidth > 1024);
       }
   };
 
@@ -99,16 +97,19 @@ const App: React.FC = () => {
   const handleScholarSelect = (stage: StudyStage, id: string) => {
       setCurrentStage(stage);
       setActivePerspectiveId(id);
+      if (window.innerWidth < 1024) setIsSidebarOpen(false);
   };
   
   const handleSourceSelect = (source: 'CHUMASH' | 'MISHNA' | 'GEMARA') => {
       setCurrentStage(StudyStage.SOURCE_TEXT);
       setActiveSource(source);
+      if (window.innerWidth < 1024) setIsSidebarOpen(false);
   }
 
   const handleAnalysisSelect = (section: 'STRUCTURE' | 'LOGIC' | 'MELITZA') => {
       setCurrentStage(StudyStage.ANALYSIS);
       setAnalysisSection(section);
+      if (window.innerWidth < 1024) setIsSidebarOpen(false);
   }
 
   const handleScholarNavigation = (direction: 'next' | 'prev') => {
@@ -144,6 +145,15 @@ const App: React.FC = () => {
       setIsGeneratingDeepData(false);
   }
 
+  const handleSourceNavigation = (direction: 'next') => {
+      if (activeSource === 'CHUMASH') {
+          setActiveSource('MISHNA');
+      } else if (activeSource === 'MISHNA') {
+          setActiveSource('GEMARA');
+      }
+      // If needed, could navigate to Rishonim from Gemara
+  };
+
   // --- RESIZE HANDLERS ---
   const startResize = (e: React.MouseEvent) => {
       e.preventDefault();
@@ -167,13 +177,6 @@ const App: React.FC = () => {
       document.removeEventListener('mouseup', stopResize);
   };
 
-  // Effect to manage sidebar visibility based on stage logic
-  useEffect(() => {
-      if (currentStage === StudyStage.SELECTOR) {
-          setIsSidebarOpen(false);
-      }
-  }, [currentStage]);
-
   // Determine active scholar object
   const activeScholar = 
       currentStage === StudyStage.DEPTH_RISHONIM 
@@ -190,7 +193,7 @@ const App: React.FC = () => {
               {/* 1. Intro */}
               <div 
                   className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-all ${currentStage === StudyStage.INTRO ? 'bg-slate-100 text-slate-900 font-bold' : 'text-slate-600 hover:bg-slate-50'}`}
-                  onClick={() => setCurrentStage(StudyStage.INTRO)}
+                  onClick={() => { setCurrentStage(StudyStage.INTRO); if(window.innerWidth < 1024) setIsSidebarOpen(false); }}
               >
                   <FileText size={16} />
                   <span>Sugya Intro</span>
@@ -202,7 +205,6 @@ const App: React.FC = () => {
                       className={`flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-all mb-1 ${currentStage === StudyStage.SOURCE_TEXT ? 'bg-slate-100 text-slate-900 font-bold' : 'text-slate-600 hover:bg-slate-50'}`}
                       onClick={() => {
                           setCurrentStage(StudyStage.SOURCE_TEXT);
-                          // Ensure we open to Chumash if just clicking the header
                           if (activeSource !== 'CHUMASH' && activeSource !== 'MISHNA' && activeSource !== 'GEMARA') {
                               setActiveSource('CHUMASH');
                           }
@@ -342,7 +344,7 @@ const App: React.FC = () => {
               {/* 6. Psak */}
               <div 
                   className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-all ${currentStage === StudyStage.PSAK ? 'bg-slate-100 text-slate-900 font-bold' : 'text-slate-600 hover:bg-slate-50'}`}
-                  onClick={() => setCurrentStage(StudyStage.PSAK)}
+                  onClick={() => { setCurrentStage(StudyStage.PSAK); if(window.innerWidth < 1024) setIsSidebarOpen(false); }}
               >
                   <Gavel size={16} />
                   <span>Psak Halacha</span>
@@ -362,24 +364,34 @@ const App: React.FC = () => {
   return (
     <div className="flex h-screen w-screen overflow-hidden text-slate-800 font-sans bg-[#fdfbf7]">
       
+      {/* SIDEBAR OVERLAY FOR MOBILE */}
+      {isSidebarOpen && window.innerWidth < 1024 && (
+          <div className="fixed inset-0 bg-black/50 z-20" onClick={() => setIsSidebarOpen(false)}></div>
+      )}
+
       {/* UNIFIED SIDEBAR */}
       <aside 
         className={`
-            bg-white border-r border-slate-200 flex flex-col flex-shrink-0 z-30 
-            transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1.0)] shadow-xl lg:shadow-none
-            ${isSidebarOpen ? 'w-72 translate-x-0' : 'w-0 -translate-x-full opacity-0 overflow-hidden'}
+            bg-white border-r border-slate-200 flex flex-col flex-shrink-0 z-30 fixed lg:relative h-full
+            transition-all duration-300 ease-in-out shadow-xl lg:shadow-none
+            ${isSidebarOpen ? 'w-72 translate-x-0' : 'w-72 -translate-x-full lg:w-0 lg:-translate-x-full lg:opacity-0 lg:overflow-hidden'}
         `}
       >
         {/* Header Area */}
         <div className="p-5 border-b border-slate-100 bg-slate-50/50">
-            <div 
-                className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity mb-5" 
-                onClick={() => setCurrentStage(StudyStage.SELECTOR)}
-            >
-                <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-amber-500 font-bold font-hebrew text-xl shadow-sm">
-                    מ
+            <div className="flex justify-between items-start mb-5">
+                <div 
+                    className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" 
+                    onClick={() => setCurrentStage(StudyStage.SELECTOR)}
+                >
+                    <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-amber-500 font-bold font-hebrew text-xl shadow-sm">
+                        מ
+                    </div>
+                    <h1 className="font-bold tracking-tight text-slate-900 text-lg">MySugya</h1>
                 </div>
-                <h1 className="font-bold tracking-tight text-slate-900 text-lg">MySugya</h1>
+                <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-slate-400">
+                    <X size={20} />
+                </button>
             </div>
 
             {/* Sidebar Tabs */}
@@ -408,7 +420,7 @@ const App: React.FC = () => {
                     {/* View Modes */}
                     <div className="grid grid-cols-1 mb-6">
                         <button 
-                            onClick={() => setViewMode(viewMode === 'LEARN' ? 'WHITEBOARD' : 'LEARN')}
+                            onClick={() => { setViewMode(viewMode === 'LEARN' ? 'WHITEBOARD' : 'LEARN'); if(window.innerWidth < 1024) setIsSidebarOpen(false); }}
                             className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all ${viewMode === 'WHITEBOARD' ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'}`}
                         >
                             <Map size={20} />
@@ -440,6 +452,31 @@ const App: React.FC = () => {
                                         <p className="text-xs text-slate-600 leading-relaxed mb-3">
                                             {c.description}
                                         </p>
+                                        {/* Attributes Section */}
+                                        {c.attributes && c.attributes.length > 0 && (
+                                            <div className="mb-3 space-y-1">
+                                                {c.attributes.map((attr, idx) => (
+                                                    <div key={idx} className="flex items-start text-[10px] border-l-2 border-amber-200 pl-2">
+                                                        <span className="font-bold text-slate-700 mr-1">{attr.label}:</span>
+                                                        <span className="text-slate-500">{attr.value}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {/* Opinions Section */}
+                                        {c.opinions && c.opinions.length > 0 && (
+                                            <div className="mb-3 bg-white/50 p-2 rounded border border-slate-100">
+                                                <div className="text-[9px] font-bold uppercase text-slate-400 mb-1">Opinions</div>
+                                                <div className="space-y-2">
+                                                    {c.opinions.map((op, idx) => (
+                                                        <div key={idx} className="text-[10px]">
+                                                            <span className="font-bold text-indigo-700 block">{op.authority}</span>
+                                                            <span className="text-slate-600 leading-tight block">{op.text}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
                                         <button 
                                             onClick={(e) => { e.stopPropagation(); handleConceptAi(c); }}
                                             className="w-full py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold rounded flex items-center justify-center gap-2 transition-colors"
@@ -455,27 +492,6 @@ const App: React.FC = () => {
             )}
         </div>
 
-        {/* External Resources */}
-        {currentSugya.resources && (currentSugya.resources.pdfUrl || currentSugya.resources.videoUrl) && (
-            <div className="px-5 py-3 border-t border-slate-100 bg-slate-50/30">
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">External Resources</div>
-                <div className="flex gap-2">
-                    {currentSugya.resources.pdfUrl && (
-                        <a href={currentSugya.resources.pdfUrl} target="_blank" rel="noopener noreferrer" className="flex-1 flex flex-col items-center justify-center p-2 bg-white border border-slate-200 rounded hover:border-indigo-400 hover:text-indigo-600 transition-all text-slate-500">
-                            <FileText size={16} className="mb-1" />
-                            <span className="text-[9px] font-bold uppercase">PDF</span>
-                        </a>
-                    )}
-                    {currentSugya.resources.videoUrl && (
-                        <a href={currentSugya.resources.videoUrl} target="_blank" rel="noopener noreferrer" className="flex-1 flex flex-col items-center justify-center p-2 bg-white border border-slate-200 rounded hover:border-indigo-400 hover:text-indigo-600 transition-all text-slate-500">
-                            <Video size={16} className="mb-1" />
-                            <span className="text-[9px] font-bold uppercase">Video</span>
-                        </a>
-                    )}
-                </div>
-            </div>
-        )}
-        
         {/* Footer */}
         <div className="p-4 border-t border-slate-100 bg-slate-50/30">
             <button 
@@ -484,7 +500,6 @@ const App: React.FC = () => {
             >
                 <Home size={14} /> Library
             </button>
-            
             <div className="mt-4 flex flex-col items-center gap-2">
                 <a 
                     href="https://ai.studio/apps/drive/1zAPorQkB28G1ZcIfW8Nzgkbp25qCnDFK?fullscreenApplet=true" 
@@ -494,13 +509,7 @@ const App: React.FC = () => {
                 >
                     <GitFork size={12} /> Fork & Edit
                 </a>
-
-                <a 
-                    href="https://x.com/mendysel" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-[10px] text-slate-400 hover:text-indigo-600 font-bold uppercase tracking-widest transition-colors"
-                >
+                <a href="https://x.com/mendysel" target="_blank" rel="noopener noreferrer" className="text-[10px] text-slate-400 hover:text-indigo-600 font-bold uppercase tracking-widest transition-colors">
                     Created by Mendy S
                 </a>
             </div>
@@ -510,22 +519,13 @@ const App: React.FC = () => {
       {/* MAIN CONTENT AREA */}
       <main className="flex-1 flex flex-col relative transition-all duration-300 min-w-0 bg-[#fdfbf7]">
         
-        {/* HEADER (Minimal / Toggle only) */}
-        <div className="absolute top-4 left-4 z-50 print:hidden">
-             <button 
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className={`p-2 rounded-lg bg-white/80 backdrop-blur border border-slate-200 shadow-sm hover:bg-white text-slate-600 transition-colors ${!isSidebarOpen ? 'text-indigo-600' : ''}`}
-                title="Toggle Sidebar"
-            >
-                {isSidebarOpen ? <SidebarClose size={20} /> : <SidebarOpen size={20} />}
-            </button>
-        </div>
+        {/* HEADER (Floating button removed for mobile) */}
 
         {/* Content Viewport */}
         {viewMode === 'WHITEBOARD' ? (
              <Whiteboard sugya={currentSugya} onClose={() => setViewMode('LEARN')} />
         ) : (
-             <div className="flex-1 overflow-hidden flex flex-col bg-[#fdfbf7] relative">
+             <div className="flex-1 overflow-hidden flex flex-col bg-[#fdfbf7] relative pb-16 lg:pb-0">
                 <div 
                     className={`flex-1 overflow-y-auto p-0 w-full scroll-smooth`}
                     style={{ paddingBottom: selectedNode ? `${panelHeight}px` : '0px' }}
@@ -556,6 +556,7 @@ const App: React.FC = () => {
                                 masechtaHebrew: (s as any).masechtaHebrew,
                                 daf: s.daf
                             }))}
+                            onNavigateSource={handleSourceNavigation}
                         />
                     )}
 
@@ -588,10 +589,9 @@ const App: React.FC = () => {
                 {/* Bottom Horizontal Details Panel */}
                 {selectedNode && (
                     <div 
-                        className="fixed bottom-0 left-0 right-0 lg:left-80 bg-white border-t-2 border-slate-900 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] z-40 flex flex-col"
+                        className="fixed bottom-16 lg:bottom-0 left-0 right-0 lg:left-72 bg-white border-t-2 border-slate-900 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] z-40 flex flex-col"
                         style={{ height: `${panelHeight}px`, transition: isDraggingPanel.current ? 'none' : 'height 0.3s ease' }}
                     >
-                        
                         {/* Drag Handle */}
                         <div 
                             className="h-3 w-full bg-slate-100 border-b border-slate-200 cursor-ns-resize flex items-center justify-center hover:bg-slate-200 transition-colors"
@@ -606,7 +606,7 @@ const App: React.FC = () => {
                                 <div className="p-1.5 bg-slate-200 rounded text-slate-700">
                                     <ZoomIn size={16} />
                                 </div>
-                                <span className="font-bold text-slate-700 text-sm uppercase tracking-wide">Analysis & Detail</span>
+                                <span className="font-bold text-slate-700 text-sm uppercase tracking-wide">Analysis</span>
                                 <div className="h-4 w-px bg-slate-300 mx-2"></div>
                                 <span className="text-xs font-bold text-indigo-600 uppercase bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">{selectedNode.type}</span>
                              </div>
@@ -702,9 +702,48 @@ const App: React.FC = () => {
         )}
       </main>
 
+      {/* MOBILE FOOTER NAVIGATION */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-slate-200 flex justify-around items-center z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+          <button 
+            onClick={() => { setCurrentStage(StudyStage.SOURCE_TEXT); if(window.innerWidth < 1024) setIsSidebarOpen(false); }}
+            className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-bold gap-1 ${currentStage === StudyStage.SOURCE_TEXT ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500'}`}
+          >
+              <BookOpen size={20} />
+              <span>Source</span>
+          </button>
+          <button 
+            onClick={() => { setCurrentStage(StudyStage.DEPTH_RISHONIM); if(window.innerWidth < 1024) setIsSidebarOpen(false); }}
+            className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-bold gap-1 ${currentStage === StudyStage.DEPTH_RISHONIM ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500'}`}
+          >
+              <Book size={20} />
+              <span>Rishonim</span>
+          </button>
+          <button 
+            onClick={() => { setCurrentStage(StudyStage.DEPTH_ACHRONIM); if(window.innerWidth < 1024) setIsSidebarOpen(false); }}
+            className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-bold gap-1 ${currentStage === StudyStage.DEPTH_ACHRONIM ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500'}`}
+          >
+              <Layers size={20} />
+              <span>Achronim</span>
+          </button>
+          <button 
+            onClick={() => { setCurrentStage(StudyStage.PSAK); if(window.innerWidth < 1024) setIsSidebarOpen(false); }}
+            className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-bold gap-1 ${currentStage === StudyStage.PSAK ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500'}`}
+          >
+              <Gavel size={20} />
+              <span>Psak</span>
+          </button>
+          <button 
+            onClick={() => setIsSidebarOpen(true)}
+            className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-bold gap-1 ${isSidebarOpen ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500'}`}
+          >
+              <Menu size={20} />
+              <span>Menu</span>
+          </button>
+      </div>
+
       {/* AI Slide-over Panel */}
       {aiPanelOpen && (
-        <div className="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl z-50 border-l border-slate-200 flex flex-col animate-in slide-in-from-right duration-300">
+        <div className="fixed right-0 top-0 h-full w-full lg:w-96 bg-white shadow-2xl z-50 border-l border-slate-200 flex flex-col animate-in slide-in-from-right duration-300">
              <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-indigo-50/50 to-white">
                  <h3 className="font-bold text-indigo-900 flex items-center gap-2 text-sm">
                      <BrainCircuit className="text-indigo-600" size={18} />

@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { LogicNode, SugyaSection } from '../types';
-import { BookOpen, Scroll, Book, ArrowUp, ArrowDown } from 'lucide-react';
+import { BookOpen, Scroll, Book, ArrowUp, ArrowDown, ChevronRight } from 'lucide-react';
 
 interface Props {
   sugya: SugyaSection;
@@ -9,9 +8,10 @@ interface Props {
   onAnalyze: (node: LogicNode) => void;
   onSwitchSugya: (id: string) => void;
   availableSugyas: {id: string, title: string, masechta: string, masechtaHebrew?: string, daf: string}[];
+  onNavigateSource?: (direction: 'next') => void;
 }
 
-export const TzurasHadaf: React.FC<Props> = ({ sugya, activeSource, onAnalyze, onSwitchSugya, availableSugyas }) => {
+export const TzurasHadaf: React.FC<Props> = ({ sugya, activeSource, onAnalyze, onSwitchSugya, availableSugyas, onNavigateSource }) => {
   const [showEnglish, setShowEnglish] = useState(false);
   const [sugyaDropdownOpen, setSugyaDropdownOpen] = useState(false);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
@@ -70,7 +70,6 @@ export const TzurasHadaf: React.FC<Props> = ({ sugya, activeSource, onAnalyze, o
       titleDisplay = 'מקראות גדולות';
       subTitleDisplay = 'חומש דברים';
       // Custom display for Chumash: Posuk, Page, Chapter, Yom
-      // Mocking specific data for the "Kiddushin 6b" sugya context (Devarim 24:1)
       headerLeftContent = (
           <div className="flex flex-col items-end">
               <div className="font-hebrew-serif font-bold text-stone-900 text-right">
@@ -98,7 +97,6 @@ export const TzurasHadaf: React.FC<Props> = ({ sugya, activeSource, onAnalyze, o
       titleDisplay = (found as any)?.masechtaHebrew || sugya.sourceRef.split(' ')[0] || 'קידושין'; 
       subTitleDisplay = 'עין משפט נר מצוה';
       // Gemara Style: Hebrew Daf (e.g. ו: - ז.)
-      // Transforming "6b-7a" to hebrew approximation
       headerLeftContent = (
           <div className="font-hebrew-serif text-3xl font-bold text-stone-900 mb-2" dir="rtl">
               ו: - ז.
@@ -110,21 +108,11 @@ export const TzurasHadaf: React.FC<Props> = ({ sugya, activeSource, onAnalyze, o
   // --- RENDERERS ---
 
   const renderHeader = () => (
-    <div className="pt-6 pb-2 px-12 border-b-2 border-stone-800 border-double mx-8 flex items-end justify-between relative z-10">
-        {/* Right: Perek/Parsha */}
-        <div className="w-1/4 text-right">
-             <div className="font-hebrew-serif text-xl font-bold text-stone-900">
-                {activeSource === 'CHUMASH' ? 'פרשת כי תצא' : 'פרק ראשון'}
-             </div>
-             <div className="font-hebrew-serif text-sm text-stone-600 mt-1">
-                {subTitleDisplay}
-             </div>
-        </div>
-
-        {/* Center: Title */}
-        <div className="w-1/2 text-center">
+    <div className="pt-6 pb-2 px-6 md:px-12 border-b-2 border-stone-800 border-double mx-4 md:mx-8 flex flex-col md:flex-row items-center md:items-end justify-between relative z-10 gap-4">
+        {/* Mobile: Title First */}
+        <div className="md:w-1/2 text-center order-1 md:order-2">
              <div 
-                className="font-hebrew-serif text-5xl md:text-6xl font-black text-stone-900 leading-[0.9] tracking-tight cursor-pointer hover:opacity-80 transition-opacity"
+                className="font-hebrew-serif text-4xl md:text-6xl font-black text-stone-900 leading-[0.9] tracking-tight cursor-pointer hover:opacity-80 transition-opacity"
                 onClick={(e) => { e.stopPropagation(); setSugyaDropdownOpen(!sugyaDropdownOpen); }}
              >
                 {titleDisplay}
@@ -147,8 +135,18 @@ export const TzurasHadaf: React.FC<Props> = ({ sugya, activeSource, onAnalyze, o
             )}
         </div>
 
+        {/* Right: Perek/Parsha */}
+        <div className="w-full md:w-1/4 text-center md:text-right order-2 md:order-1">
+             <div className="font-hebrew-serif text-xl font-bold text-stone-900">
+                {activeSource === 'CHUMASH' ? 'פרשת כי תצא' : 'פרק ראשון'}
+             </div>
+             <div className="font-hebrew-serif text-sm text-stone-600 mt-1">
+                {subTitleDisplay}
+             </div>
+        </div>
+
         {/* Left: Daf/Source + Toggle */}
-        <div className="w-1/4 text-left flex flex-col items-end">
+        <div className="w-full md:w-1/4 text-center md:text-left flex flex-col items-center md:items-end order-3 md:order-3">
              {headerLeftContent}
              
              {/* English Toggle Consistent Placement */}
@@ -167,10 +165,10 @@ export const TzurasHadaf: React.FC<Props> = ({ sugya, activeSource, onAnalyze, o
       if (!sugya.chumashText) return <div className="p-10 text-center">No Chumash text available.</div>;
       
       return (
-        <div className="grid grid-cols-12 gap-8 relative min-h-[900px] p-8">
+        <div className="grid grid-cols-12 gap-8 relative min-h-[900px] p-4 md:p-8">
             
             {/* Right: Rashi (Wider, no Ramban column) */}
-            <div className="col-span-12 md:col-span-4 border-l border-stone-300 pl-6 text-right" dir="rtl">
+            <div className="col-span-12 md:col-span-4 border-l border-stone-300 pl-0 md:pl-6 text-right order-2 md:order-1" dir="rtl">
                 <div className="text-center mb-6 border-b border-stone-300 pb-2">
                     <span className="font-rashi font-bold text-xl text-stone-900">רש"י</span>
                 </div>
@@ -192,14 +190,14 @@ export const TzurasHadaf: React.FC<Props> = ({ sugya, activeSource, onAnalyze, o
             </div>
 
             {/* Center: Posuk & Targum (Takes up rest of space) */}
-            <div className="col-span-12 md:col-span-8 flex flex-col items-center pt-8">
+            <div className="col-span-12 md:col-span-8 flex flex-col items-center pt-8 order-1 md:order-2">
                  {/* Main Hebrew Text */}
                  <div className="text-center mb-8 w-full">
-                     <div className="font-hebrew-serif text-5xl leading-[1.6] font-bold text-stone-900 mb-6" dir="rtl">
+                     <div className="font-hebrew-serif text-3xl md:text-5xl leading-[1.6] font-bold text-stone-900 mb-6" dir="rtl">
                          {sugya.chumashText.text}
                      </div>
                      {showEnglish && (
-                         <div className="font-serif text-stone-700 text-xl italic text-center max-w-3xl mx-auto border-t border-stone-200 pt-4">
+                         <div className="font-serif text-stone-700 text-lg md:text-xl italic text-center max-w-3xl mx-auto border-t border-stone-200 pt-4">
                              {sugya.chumashText.translation}
                          </div>
                      )}
@@ -210,7 +208,7 @@ export const TzurasHadaf: React.FC<Props> = ({ sugya, activeSource, onAnalyze, o
                      <div className="text-center mb-6">
                         <span className="font-hebrew-serif font-bold text-stone-500 text-base uppercase tracking-[0.2em]">תרגום אונקלוס</span>
                      </div>
-                     <div className="font-hebrew-serif text-2xl leading-[1.6] text-stone-800 text-center mb-4" dir="rtl">
+                     <div className="font-hebrew-serif text-xl md:text-2xl leading-[1.6] text-stone-800 text-center mb-4" dir="rtl">
                          {sugya.chumashText.targum}
                      </div>
                      {showEnglish && sugya.chumashText.targumTranslation && (
@@ -219,6 +217,19 @@ export const TzurasHadaf: React.FC<Props> = ({ sugya, activeSource, onAnalyze, o
                          </div>
                      )}
                  </div>
+
+                 {/* Navigation Button */}
+                 {onNavigateSource && (
+                     <div className="mt-auto pt-16 mb-8 w-full flex justify-center">
+                         <button 
+                            onClick={() => onNavigateSource('next')}
+                            className="group flex items-center gap-3 px-8 py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-300 rounded-full font-bold text-sm uppercase tracking-widest transition-all"
+                         >
+                             Continue to Mishna
+                             <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                         </button>
+                     </div>
+                 )}
             </div>
 
         </div>
@@ -226,10 +237,10 @@ export const TzurasHadaf: React.FC<Props> = ({ sugya, activeSource, onAnalyze, o
   };
 
   const renderMishnaContent = () => (
-      <div className="grid grid-cols-12 gap-6 p-8 min-h-[900px]">
+      <div className="grid grid-cols-12 gap-6 p-4 md:p-8 min-h-[900px]">
           
           {/* Right Column: Bartenura */}
-          <div className="col-span-12 md:col-span-3 border-l border-stone-300 pl-4 text-right" dir="rtl">
+          <div className="col-span-12 md:col-span-3 border-l border-stone-300 pl-0 md:pl-4 text-right order-2 md:order-1" dir="rtl">
               <div className="text-center mb-4 border-b border-stone-300 pb-2">
                   <span className="font-rashi font-bold text-lg text-stone-900">ר' עובדיה מברטנורא</span>
               </div>
@@ -251,7 +262,7 @@ export const TzurasHadaf: React.FC<Props> = ({ sugya, activeSource, onAnalyze, o
           </div>
 
           {/* Center: Mishna Sequence */}
-          <div className="col-span-12 md:col-span-9 flex flex-col items-center max-w-4xl mx-auto">
+          <div className="col-span-12 md:col-span-9 flex flex-col items-center max-w-4xl mx-auto order-1 md:order-2 h-full">
               {/* Previous Mishna */}
               {sugya.mishnaContext?.previous && (
                   <div className="w-full text-center opacity-50 hover:opacity-100 transition-opacity mb-8 cursor-pointer">
@@ -268,19 +279,19 @@ export const TzurasHadaf: React.FC<Props> = ({ sugya, activeSource, onAnalyze, o
               )}
 
               {/* Current Mishna */}
-              <div className="w-full bg-white shadow-sm border border-stone-200 p-8 rounded-sm mb-8">
+              <div className="w-full bg-white shadow-sm border border-stone-200 p-4 md:p-8 rounded-sm mb-8">
                   <div className="text-center mb-6">
                       <span className="font-hebrew-serif text-3xl font-bold text-stone-900 border-b-2 border-stone-900 pb-1 px-8 inline-block tracking-[0.3em]">משנה</span>
                   </div>
                   <div 
-                      className="text-justify font-hebrew-serif text-4xl leading-[1.8] text-stone-900 mb-6"
+                      className="text-justify font-hebrew-serif text-2xl md:text-4xl leading-[1.8] text-stone-900 mb-6"
                       dir="rtl"
                       onClick={() => handleInteraction(sugya.baseText)}
                   >
                       {sugya.baseText.hebrewText}
                   </div>
                   {showEnglish && (
-                      <div className="font-serif text-stone-800 text-xl leading-relaxed border-t border-stone-100 pt-4 mt-4">
+                      <div className="font-serif text-stone-800 text-lg md:text-xl leading-relaxed border-t border-stone-100 pt-4 mt-4">
                           {sugya.baseText.englishText}
                       </div>
                   )}
@@ -300,6 +311,19 @@ export const TzurasHadaf: React.FC<Props> = ({ sugya, activeSource, onAnalyze, o
                       )}
                   </div>
               )}
+
+              {/* Navigation Button */}
+              {onNavigateSource && (
+                 <div className="mt-auto pt-12 mb-8 w-full flex justify-center">
+                     <button 
+                        onClick={() => onNavigateSource('next')}
+                        className="group flex items-center gap-3 px-8 py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-300 rounded-full font-bold text-sm uppercase tracking-widest transition-all"
+                     >
+                         Continue to Gemara
+                         <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                     </button>
+                 </div>
+              )}
           </div>
       </div>
   );
@@ -308,7 +332,7 @@ export const TzurasHadaf: React.FC<Props> = ({ sugya, activeSource, onAnalyze, o
     <div className="grid grid-cols-12 gap-0 relative min-h-[900px]">
         
         {/* Right Column: Rashi (Wider: 3 cols) */}
-        <div className="col-span-12 md:col-span-3 md:col-start-1 md:col-end-4 border-l border-stone-300 py-6 px-3 bg-[#fdfbf7]/30 flex flex-col">
+        <div className="col-span-12 md:col-span-3 md:col-start-1 md:col-end-4 border-l border-stone-300 py-6 px-3 bg-[#fdfbf7]/30 flex flex-col order-2 md:order-1">
             <div className="text-center mb-4">
                 <span className="font-rashi font-bold text-lg text-stone-900 border-b border-stone-400 pb-1 inline-block">רש"י</span>
             </div>
@@ -338,7 +362,7 @@ export const TzurasHadaf: React.FC<Props> = ({ sugya, activeSource, onAnalyze, o
         </div>
 
         {/* Center Column: Gemara (Narrower: 6 cols) */}
-        <div className="col-span-12 md:col-span-6 md:col-start-4 md:col-end-10 py-10 px-6 relative">
+        <div className="col-span-12 md:col-span-6 md:col-start-4 md:col-end-10 py-10 px-6 relative order-1 md:order-2">
             
             {/* Mishna Header */}
             <div className="text-center mb-6">
@@ -348,7 +372,7 @@ export const TzurasHadaf: React.FC<Props> = ({ sugya, activeSource, onAnalyze, o
             {/* Mishna Text & Inline Translation */}
             <div 
                 className={`
-                    text-justify font-hebrew-serif text-3xl leading-[1.6] text-stone-900 mb-2 cursor-pointer p-2 rounded transition-all
+                    text-justify font-hebrew-serif text-2xl md:text-3xl leading-[1.6] text-stone-900 mb-2 cursor-pointer p-2 rounded transition-all
                     ${isRelated(sugya.baseText.id) ? 'bg-yellow-50 shadow-sm ring-1 ring-yellow-200' : 'hover:bg-stone-50'}
                 `}
                 dir="rtl"
@@ -374,7 +398,7 @@ export const TzurasHadaf: React.FC<Props> = ({ sugya, activeSource, onAnalyze, o
                 <>
                     <div 
                         className={`
-                            text-justify font-hebrew-serif text-2xl leading-[1.6] text-stone-900 mb-2 cursor-pointer p-2 rounded transition-all
+                            text-justify font-hebrew-serif text-xl md:text-2xl leading-[1.6] text-stone-900 mb-2 cursor-pointer p-2 rounded transition-all
                             ${isRelated(sugya.gemaraText.id) ? 'bg-yellow-50 shadow-sm ring-1 ring-yellow-200' : 'hover:bg-stone-50'}
                         `}
                         dir="rtl"
@@ -410,7 +434,7 @@ export const TzurasHadaf: React.FC<Props> = ({ sugya, activeSource, onAnalyze, o
         </div>
 
         {/* Left Column: Tosfos (Wider: 3 cols) */}
-        <div className="col-span-12 md:col-span-3 md:col-start-10 md:col-end-13 border-r border-stone-300 py-6 px-3 bg-[#fdfbf7]/30 flex flex-col">
+        <div className="col-span-12 md:col-span-3 md:col-start-10 md:col-end-13 border-r border-stone-300 py-6 px-3 bg-[#fdfbf7]/30 flex flex-col order-3 md:order-3">
             <div className="text-center mb-4">
                 <span className="font-rashi font-bold text-lg text-stone-900 border-b border-stone-400 pb-1 inline-block">תוספות</span>
             </div>
@@ -461,8 +485,8 @@ export const TzurasHadaf: React.FC<Props> = ({ sugya, activeSource, onAnalyze, o
         {activeSource === 'GEMARA' && renderGemaraContent()}
 
         {/* Footer Notes (Mesoret Hashas style) */}
-        <div className="border-t-2 border-stone-800 border-double mx-8 py-4 mb-8">
-            <div className="flex justify-between text-[10px] font-hebrew-serif text-stone-600 px-4">
+        <div className="border-t-2 border-stone-800 border-double mx-4 md:mx-8 py-4 mb-8">
+            <div className="flex flex-col md:flex-row justify-between text-[10px] font-hebrew-serif text-stone-600 px-4 gap-2 text-center md:text-right">
                 <span>מסורת הש"ס: א. [דף ב.] ב. [רמב"ם פ"ג]</span>
                 <span>עין משפט: א. מיי' פ"ט מהל' גזילה</span>
                 <span>תורה אור: א. (שמות כב)</span>

@@ -21,19 +21,19 @@ export const ScholarDepthView: React.FC<Props> = ({ perspective, category, onNav
   }
 
   return (
-    <div className="h-full flex flex-col items-center bg-[#fdfbf7] overflow-y-auto overflow-x-hidden p-4 md:p-8">
+    <div className="h-full flex flex-col items-center bg-[#fdfbf7] overflow-y-auto overflow-x-hidden p-4 md:p-8 pb-20 lg:pb-8">
       
-      {/* Navigation Buttons (Absolute) */}
+      {/* Navigation Buttons (Absolute) - Visible on Desktop */}
       <button 
         onClick={() => onNavigate('prev')}
-        className="fixed left-4 top-1/2 -translate-y-1/2 p-3 bg-white/80 border border-stone-200 shadow-md rounded-full text-stone-500 hover:text-stone-900 hover:bg-white transition-all z-20 print:hidden hidden md:block"
+        className="fixed left-4 lg:left-80 top-1/2 -translate-y-1/2 p-3 bg-white/80 border border-stone-200 shadow-md rounded-full text-stone-500 hover:text-stone-900 hover:bg-white transition-all z-20 print:hidden hidden lg:block"
         title="Previous Perspective"
       >
           <ChevronLeft size={24} />
       </button>
       <button 
         onClick={() => onNavigate('next')}
-        className="fixed right-4 top-1/2 -translate-y-1/2 p-3 bg-white/80 border border-stone-200 shadow-md rounded-full text-stone-500 hover:text-stone-900 hover:bg-white transition-all z-20 print:hidden hidden md:block"
+        className="fixed right-4 top-1/2 -translate-y-1/2 p-3 bg-white/80 border border-stone-200 shadow-md rounded-full text-stone-500 hover:text-stone-900 hover:bg-white transition-all z-20 print:hidden hidden lg:block"
         title="Next Perspective"
       >
           <ChevronRight size={24} />
@@ -46,9 +46,17 @@ export const ScholarDepthView: React.FC<Props> = ({ perspective, category, onNav
         <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/cream-paper.png')] pointer-events-none"></div>
 
         {/* Header - Tzuras Hadaf Style */}
-        <div className="pt-8 pb-4 px-12 border-b-2 border-stone-800 border-double mx-8 flex items-end justify-between relative z-10">
-            {/* Right: Category/Siman */}
-            <div className="w-1/4 text-right">
+        <div className="pt-8 pb-4 px-6 md:px-12 border-b-2 border-stone-800 border-double mx-4 md:mx-8 flex flex-col md:flex-row items-center md:items-end justify-between relative z-10 gap-4">
+            
+            {/* Mobile Nav Header */}
+            <div className="w-full flex justify-between items-center md:hidden mb-2">
+                <button onClick={() => onNavigate('prev')}><ChevronLeft size={20}/></button>
+                <div className="font-hebrew-serif text-lg font-bold text-stone-900">{category === 'RISHONIM' ? 'חידושי ראשונים' : 'אוצר אחרונים'}</div>
+                <button onClick={() => onNavigate('next')}><ChevronRight size={20}/></button>
+            </div>
+
+            {/* Right: Category/Siman (Hidden on mobile as it's in nav header) */}
+            <div className="w-1/4 text-right hidden md:block">
                  <div className="font-hebrew-serif text-lg font-bold text-stone-900">
                     {category === 'RISHONIM' ? 'חידושי ראשונים' : 'אוצר אחרונים'}
                  </div>
@@ -56,14 +64,14 @@ export const ScholarDepthView: React.FC<Props> = ({ perspective, category, onNav
             </div>
 
             {/* Center: Scholar Name */}
-            <div className="w-1/2 text-center">
+            <div className="w-full md:w-1/2 text-center">
                  <div className="font-hebrew-serif text-4xl md:text-5xl font-black text-stone-900 leading-[0.8] tracking-tight">
                     {perspective.scholarNameHebrew || perspective.scholarName}
                  </div>
             </div>
 
             {/* Left: Tools */}
-            <div className="w-1/4 text-left flex justify-end">
+            <div className="w-full md:w-1/4 text-center md:text-left flex justify-center md:justify-end">
                  <button 
                     onClick={() => setShowEnglish(!showEnglish)}
                     className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase tracking-wider border rounded transition-all ${showEnglish ? 'bg-stone-800 text-white border-stone-800' : 'bg-white text-stone-500 border-stone-300 hover:bg-stone-50'}`}
@@ -75,11 +83,11 @@ export const ScholarDepthView: React.FC<Props> = ({ perspective, category, onNav
         </div>
 
         {/* Main Content Area - Grid Layout */}
-        <div className="p-8 md:p-12 relative z-10">
+        <div className="p-6 md:p-12 relative z-10">
             
             {/* Main Hebrew Text Block */}
             <div className="mb-8" dir="rtl">
-                <div className="text-justify font-hebrew-serif text-2xl leading-[1.6] text-stone-900">
+                <div className="text-justify font-hebrew-serif text-xl md:text-2xl leading-[1.6] text-stone-900">
                      {/* Split logic to bold the Dh (Dibbur Hamatchil) */}
                      {perspective.rootNode.hebrewText.split(' ').map((word, i) => {
                          // Simple heuristic: Bold first 3 words

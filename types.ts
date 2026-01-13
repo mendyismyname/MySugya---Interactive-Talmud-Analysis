@@ -39,6 +39,8 @@ export interface Concept {
   category: 'Kinyan' | 'Mamon' | 'Issur' | 'Kodshim' | 'Logic';
   subComponents?: string[];
   relatedLaws?: string[];
+  attributes?: { label: string; value: string }[];
+  opinions?: { authority: string; text: string }[];
 }
 
 export interface LogicNode {
