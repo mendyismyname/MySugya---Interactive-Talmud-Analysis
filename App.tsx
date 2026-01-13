@@ -57,7 +57,7 @@ const App: React.FC = () => {
           setSelectedNode(null);
           setActivePerspectiveId(null);
           setActiveSource('CHUMASH'); // Start with Chumash by default
-          setIsSidebarOpen(window.innerWidth > 1024);
+          setIsSidebarOpen(true); // Automatically open menu on selection
       }
   };
 
@@ -525,7 +525,7 @@ const App: React.FC = () => {
         {viewMode === 'WHITEBOARD' ? (
              <Whiteboard sugya={currentSugya} onClose={() => setViewMode('LEARN')} />
         ) : (
-             <div className="flex-1 overflow-hidden flex flex-col bg-[#fdfbf7] relative pb-16 lg:pb-0">
+             <div className="flex-1 overflow-hidden flex flex-col bg-[#fdfbf7] relative pb-24 lg:pb-0">
                 <div 
                     className={`flex-1 overflow-y-auto p-0 w-full scroll-smooth`}
                     style={{ paddingBottom: selectedNode ? `${panelHeight}px` : '0px' }}
@@ -703,42 +703,47 @@ const App: React.FC = () => {
       </main>
 
       {/* MOBILE FOOTER NAVIGATION */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-slate-200 flex justify-around items-center z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
-          <button 
-            onClick={() => { setCurrentStage(StudyStage.SOURCE_TEXT); if(window.innerWidth < 1024) setIsSidebarOpen(false); }}
-            className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-bold gap-1 ${currentStage === StudyStage.SOURCE_TEXT ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500'}`}
-          >
-              <BookOpen size={20} />
-              <span>Source</span>
-          </button>
-          <button 
-            onClick={() => { setCurrentStage(StudyStage.DEPTH_RISHONIM); if(window.innerWidth < 1024) setIsSidebarOpen(false); }}
-            className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-bold gap-1 ${currentStage === StudyStage.DEPTH_RISHONIM ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500'}`}
-          >
-              <Book size={20} />
-              <span>Rishonim</span>
-          </button>
-          <button 
-            onClick={() => { setCurrentStage(StudyStage.DEPTH_ACHRONIM); if(window.innerWidth < 1024) setIsSidebarOpen(false); }}
-            className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-bold gap-1 ${currentStage === StudyStage.DEPTH_ACHRONIM ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500'}`}
-          >
-              <Layers size={20} />
-              <span>Achronim</span>
-          </button>
-          <button 
-            onClick={() => { setCurrentStage(StudyStage.PSAK); if(window.innerWidth < 1024) setIsSidebarOpen(false); }}
-            className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-bold gap-1 ${currentStage === StudyStage.PSAK ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500'}`}
-          >
-              <Gavel size={20} />
-              <span>Psak</span>
-          </button>
-          <button 
-            onClick={() => setIsSidebarOpen(true)}
-            className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-bold gap-1 ${isSidebarOpen ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500'}`}
-          >
-              <Menu size={20} />
-              <span>Menu</span>
-          </button>
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] flex flex-col bg-white">
+          <div className="bg-slate-50 text-[10px] text-center py-1.5 text-slate-400 border-t border-slate-200 font-medium">
+              For best experience, use desktop
+          </div>
+          <div className="h-16 flex justify-around items-center border-t border-slate-200">
+              <button 
+                onClick={() => { setCurrentStage(StudyStage.SOURCE_TEXT); if(window.innerWidth < 1024) setIsSidebarOpen(false); }}
+                className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-bold gap-1 ${currentStage === StudyStage.SOURCE_TEXT ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500'}`}
+              >
+                  <BookOpen size={20} />
+                  <span>Source</span>
+              </button>
+              <button 
+                onClick={() => { setCurrentStage(StudyStage.DEPTH_RISHONIM); if(window.innerWidth < 1024) setIsSidebarOpen(false); }}
+                className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-bold gap-1 ${currentStage === StudyStage.DEPTH_RISHONIM ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500'}`}
+              >
+                  <Book size={20} />
+                  <span>Rishonim</span>
+              </button>
+              <button 
+                onClick={() => { setCurrentStage(StudyStage.DEPTH_ACHRONIM); if(window.innerWidth < 1024) setIsSidebarOpen(false); }}
+                className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-bold gap-1 ${currentStage === StudyStage.DEPTH_ACHRONIM ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500'}`}
+              >
+                  <Layers size={20} />
+                  <span>Achronim</span>
+              </button>
+              <button 
+                onClick={() => { setCurrentStage(StudyStage.PSAK); if(window.innerWidth < 1024) setIsSidebarOpen(false); }}
+                className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-bold gap-1 ${currentStage === StudyStage.PSAK ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500'}`}
+              >
+                  <Gavel size={20} />
+                  <span>Psak</span>
+              </button>
+              <button 
+                onClick={() => setIsSidebarOpen(true)}
+                className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-bold gap-1 ${isSidebarOpen ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500'}`}
+              >
+                  <Menu size={20} />
+                  <span>Menu</span>
+              </button>
+          </div>
       </div>
 
       {/* AI Slide-over Panel */}
