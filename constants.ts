@@ -209,8 +209,8 @@ const KID_6B_DEEP_DATA: SugyaSection = {
                 type: LogicType.STATEMENT,
                 era: Era.RISHON,
                 speaker: 'Rashi',
-                hebrewText: 'פירוש רש"י על הסוגיא',
-                englishText: 'Rashi explains the basic terms and flow.',
+                hebrewText: 'הרי את מקודשת לי - במתניתין תני האי לישנא, ובברייתא תני לישנא אחרינא דהוי נמי קידושין: הרי את מאורסת, הרי את אשתי. אינה מקודשת - דהוא נתן והיא אמרה, לאו כלום הוא, דכתיב כי יקח ולא כי תקח. ספיקא היא - שמא נתרצה לה ויהיב לה על מנת כן, או שמא שחוק עשה בה.',
+                englishText: '"Behold you are betrothed to me" - The Mishna teaches this phrasing. The Baraita lists other valid phrases like "Behold you are betrothed" or "Behold you are my wife". "She is not betrothed" - Since he gave the money but she spoke the words, it is void. The verse says "When a man takes", implying he must be the active initiator of the bond. "It is a doubt" - If he gave and she spoke, and then he also spoke, maybe he consented to her condition, or maybe he was just mocking her.',
                 concepts: [],
                 children: [
                     {
@@ -253,8 +253,8 @@ const KID_6B_DEEP_DATA: SugyaSection = {
                 type: LogicType.STATEMENT,
                 era: Era.RISHON,
                 speaker: 'Tosfos',
-                hebrewText: 'קושיות ותירוצים של בעלי התוספות',
-                englishText: 'Tosfos analyzes deeper legal implications.',
+                hebrewText: 'ואמר לה הרי את מקודשת - תימה, למה לי אמירה? והלא באדם חשוב עסקינן! וי"ל - דאפילו באדם חשוב, אי לא אמר מידי, הוי דברים שבלב.',
+                englishText: 'Question: "And he said to her..." - It is a wonder: Why is speech needed at all? Are we not dealing with a scenario where he is an important man (Adam Chashuv), where the benefit of her receiving money from him should create the bond automatically even without speech? Answer: One can answer - Even for an important man, if he says nothing, his intent remains "Words in the heart" (hidden intent), which are legally void. Speech is required to reveal the intent.',
                 concepts: [],
                 children: [
                     {
