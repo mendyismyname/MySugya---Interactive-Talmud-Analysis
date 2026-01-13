@@ -493,6 +493,7 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
             className={`
                 absolute md:relative top-0 bottom-0 left-0 bg-white border-r border-slate-200 flex flex-col z-[70] shadow-2xl md:shadow-none transition-all duration-300 ease-in-out
                 ${isSidebarOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full md:w-0 md:-translate-x-64'}
+                overflow-hidden
             `}
             style={{ width: isSidebarOpen ? '16rem' : '0' }}
           >
@@ -763,7 +764,7 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
           </div>
           
           {/* Zoom Controls */}
-          <div className="absolute bottom-24 md:bottom-6 right-6 flex flex-col gap-2 bg-white rounded-lg shadow-md border border-slate-200 p-1 z-10">
+          <div className="absolute bottom-6 right-6 flex flex-col gap-2 bg-white rounded-lg shadow-md border border-slate-200 p-1 z-10">
               <button onClick={() => setScale(s => Math.min(s + 0.1, 2))} className="p-3 md:p-2 hover:bg-slate-100 rounded text-slate-600 active:bg-slate-200"><ZoomIn size={20} /></button>
               <button onClick={() => setScale(s => Math.max(s - 0.1, 0.5))} className="p-3 md:p-2 hover:bg-slate-100 rounded text-slate-600 active:bg-slate-200"><ZoomOut size={20} /></button>
           </div>
