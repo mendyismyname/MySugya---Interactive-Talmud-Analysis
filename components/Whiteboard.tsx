@@ -6,7 +6,7 @@ import {
     X, User, Network, Workflow, BookOpen, Layers,
     LogOut, Eye, EyeOff, Square, Circle, Diamond, Edit3, Trash2,
     ZoomIn, ZoomOut, Save, Share2, MousePointer2, Plus, ArrowRight,
-    Triangle, MoreHorizontal, FileText, AlignLeft, MessageSquare, Menu
+    Triangle, MoreHorizontal, FileText, AlignLeft, MessageSquare, Menu, Move
 } from 'lucide-react';
 
 interface Props {
@@ -53,17 +53,29 @@ interface ConnectingState {
     currentY: number;
 }
 
+interface PanState {
+    x: number;
+    y: number;
+}
+
 export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
   // --- STATE ---
   const [nodes, setNodes] = useState<CanvasNode[]>([]);
   const [connections, setConnections] = useState<Connection[]>([]);
+  
+  // Viewport State
   const [scale, setScale] = useState(1);
+  const [pan, setPan] = useState<PanState>({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const lastMousePos = useRef<{x: number, y: number} | null>(null);
+
+  // Interaction State
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [dragState, setDragState] = useState<DragState | null>(null);
   const [connectingState, setConnectingState] = useState<ConnectingState | null>(null);
   
   // UI State
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Default closed on mobile, logic below handles desktop
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); 
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
   const [expandedNoteId, setExpandedNoteId] = useState<string | null>(null);
 
@@ -76,6 +88,11 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
   useEffect(() => {
       if (window.innerWidth >= 768) {
           setIsSidebarOpen(true);
+          // Center canvas roughly on desktop
+          setPan({ x: 0, y: 0 });
+      } else {
+          // Add some padding on mobile
+          setPan({ x: 20, y: 20 });
       }
   }, []);
 
@@ -104,8 +121,8 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
         const newNodes: CanvasNode[] = [];
         const newConns: Connection[] = [];
         
-        // Adjust start position for mobile
-        const startX = window.innerWidth < 768 ? 50 : 600;
+        // Default positions relative to 0,0
+        const startX = window.innerWidth < 768 ? 20 : 100;
         const startY = 100;
 
         const mapFlow = (steps: VisualFlowStep[], curX: number, curY: number, parentId?: string) => {
@@ -191,24 +208,25 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
 
   // --- HELPERS ---
 
-  const getClientCoords = (e: React.MouseEvent | MouseEvent | React.TouchEvent | TouchEvent) => {
-      const rect = canvasRef.current?.getBoundingClientRect();
-      if (!rect) return { x: 0, y: 0 };
-      
-      let clientX, clientY;
+  const getRawClientCoords = (e: React.MouseEvent | MouseEvent | React.TouchEvent | TouchEvent) => {
       if ('touches' in e && e.touches.length > 0) {
-          clientX = e.touches[0].clientX;
-          clientY = e.touches[0].clientY;
+          return { x: e.touches[0].clientX, y: e.touches[0].clientY };
       } else if ('clientX' in e) {
-          clientX = (e as React.MouseEvent).clientX;
-          clientY = (e as React.MouseEvent).clientY;
-      } else {
-          return { x: 0, y: 0 };
+          return { x: (e as React.MouseEvent).clientX, y: (e as React.MouseEvent).clientY };
       }
+      return { x: 0, y: 0 };
+  }
 
+  // Returns logical coordinates (taking zoom and pan into account)
+  const getLogicalCoords = (e: React.MouseEvent | MouseEvent | React.TouchEvent | TouchEvent) => {
+      const rect = canvasRef.current?.getBoundingClientRect();
+      const raw = getRawClientCoords(e);
+      if (!rect) return { x: 0, y: 0 };
+
+      // Logical = (Raw - CanvasOffset - PanOffset) / Scale
       return {
-          x: (clientX - rect.left) / scale,
-          y: (clientY - rect.top) / scale
+          x: (raw.x - rect.left - pan.x) / scale,
+          y: (raw.y - rect.top - pan.y) / scale
       };
   };
 
@@ -225,8 +243,13 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
   // --- HANDLERS ---
 
   const handleCanvasInput = (e: React.MouseEvent | React.TouchEvent) => {
-      // Background click logic handled via stopPropagation on elements
+      // Background click/touch
+      // Only start panning if we aren't already dragging a node/connection
       if (dragState || connectingState) return;
+      
+      const raw = getRawClientCoords(e);
+      lastMousePos.current = raw;
+      setIsPanning(true);
       
       setSelectedNodeId(null);
       setEditingNodeId(null);
@@ -234,8 +257,8 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
   };
 
   const handleNodeStart = (e: React.MouseEvent | React.TouchEvent, id: string) => {
-      e.stopPropagation();
-      const coords = getClientCoords(e);
+      e.stopPropagation(); // Stop background pan
+      const coords = getLogicalCoords(e);
       const node = nodes.find(n => n.id === id);
       if (node) {
           setDragState({
@@ -248,8 +271,8 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
   };
 
   const handleHandleStart = (e: React.MouseEvent | React.TouchEvent, nodeId: string, handle: HandlePosition) => {
-      e.stopPropagation();
-      const coords = getClientCoords(e);
+      e.stopPropagation(); // Stop background pan
+      const coords = getLogicalCoords(e);
       setConnectingState({
           sourceId: nodeId,
           handle,
@@ -273,24 +296,38 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
   };
 
   const handleInputMove = (e: React.MouseEvent | React.TouchEvent) => {
-      const coords = getClientCoords(e);
+      const raw = getRawClientCoords(e);
+      const logical = getLogicalCoords(e);
 
+      // 1. Panning logic
+      if (isPanning && lastMousePos.current) {
+          const deltaX = raw.x - lastMousePos.current.x;
+          const deltaY = raw.y - lastMousePos.current.y;
+          setPan(prev => ({ x: prev.x + deltaX, y: prev.y + deltaY }));
+          lastMousePos.current = raw;
+          return; // Don't process other drags if panning
+      }
+
+      // 2. Node Dragging
       if (dragState) {
           setNodes(prev => prev.map(n => 
               n.id === dragState.nodeId 
-                  ? { ...n, x: coords.x - dragState.offsetX, y: coords.y - dragState.offsetY } 
+                  ? { ...n, x: logical.x - dragState.offsetX, y: logical.y - dragState.offsetY } 
                   : n
           ));
       }
 
+      // 3. Connection Dragging
       if (connectingState) {
-          setConnectingState(prev => prev ? { ...prev, currentX: coords.x, currentY: coords.y } : null);
+          setConnectingState(prev => prev ? { ...prev, currentX: logical.x, currentY: logical.y } : null);
       }
   };
 
   const handleInputEnd = () => {
       setDragState(null);
       setConnectingState(null);
+      setIsPanning(false);
+      lastMousePos.current = null;
   };
 
   const handleDoubleClick = (e: React.MouseEvent, id: string) => {
@@ -301,11 +338,16 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
 
   // --- ACTIONS ---
 
-  const addGenericShape = (shape: NodeShape, x: number, y: number) => {
+  const addGenericShape = (shape: NodeShape, xOffset: number = 0) => {
+    // Add relative to center of current view
+    const centerX = (-pan.x + (canvasRef.current?.clientWidth || 800) / 2) / scale;
+    const centerY = (-pan.y + (canvasRef.current?.clientHeight || 600) / 2) / scale;
+
     const isDiamond = shape === 'DIAMOND';
     setNodes(prev => [...prev, {
         id: `shape-${Date.now()}`,
-        x, y,
+        x: centerX + xOffset, 
+        y: centerY,
         type: 'GENERIC_SHAPE',
         label: 'Title',
         content: 'Description',
@@ -351,13 +393,13 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
       onDragEnd={(e) => {
           const rect = canvasRef.current?.getBoundingClientRect();
           if (rect) {
-              const x = (e.clientX - rect.left) / scale;
-              const y = (e.clientY - rect.top) / scale;
+              const x = (e.clientX - rect.left - pan.x) / scale;
+              const y = (e.clientY - rect.top - pan.y) / scale;
               
               setNodes(prev => [...prev, {
                   id: `${type}-${item.id}-${Date.now()}`,
-                  x: x > 0 ? x : 100, // Fallback if dropped outside
-                  y: y > 0 ? y : 100,
+                  x: x, 
+                  y: y,
                   type: type as any,
                   label: label,
                   content: item.description || item.englishText || item.text || '',
@@ -370,11 +412,14 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
           }
       }}
       onClick={() => {
-          // Click to add support for Mobile
+          // Click to add support for Mobile - center in view
+          const centerX = (-pan.x + (canvasRef.current?.clientWidth || 300) / 2) / scale;
+          const centerY = (-pan.y + (canvasRef.current?.clientHeight || 300) / 2) / scale;
+
           setNodes(prev => [...prev, {
               id: `${type}-${item.id}-${Date.now()}`,
-              x: 50, // Default position
-              y: 50 + (nodes.length * 20),
+              x: centerX - 110, // Center the node
+              y: centerY - 60,
               type: type as any,
               label: label,
               content: item.description || item.englishText || item.text || '',
@@ -394,7 +439,7 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
   );
 
   return (
-    <div className="h-full flex flex-col bg-slate-50 overflow-hidden relative">
+    <div className="h-full flex flex-col bg-slate-50 overflow-hidden relative select-none">
       
       {/* Header */}
       <div className="h-14 bg-white border-b border-slate-200 flex items-center px-4 justify-between z-30 shadow-sm shrink-0">
@@ -413,9 +458,9 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
               
               {/* Toolbar - Compact on Mobile */}
               <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg ml-2 overflow-x-auto no-scrollbar">
-                  <button onClick={() => addGenericShape('RECT', 150, 150)} className="p-1.5 hover:bg-white rounded text-slate-600" title="Rectangle"><Square size={16}/></button>
-                  <button onClick={() => addGenericShape('CIRCLE', 200, 150)} className="p-1.5 hover:bg-white rounded text-slate-600" title="Circle"><Circle size={16}/></button>
-                  <button onClick={() => addGenericShape('DIAMOND', 250, 150)} className="p-1.5 hover:bg-white rounded text-slate-600" title="Diamond"><Diamond size={16}/></button>
+                  <button onClick={() => addGenericShape('RECT')} className="p-1.5 hover:bg-white rounded text-slate-600" title="Rectangle"><Square size={16}/></button>
+                  <button onClick={() => addGenericShape('CIRCLE')} className="p-1.5 hover:bg-white rounded text-slate-600" title="Circle"><Circle size={16}/></button>
+                  <button onClick={() => addGenericShape('DIAMOND')} className="p-1.5 hover:bg-white rounded text-slate-600" title="Diamond"><Diamond size={16}/></button>
                   <div className="w-px h-4 bg-slate-300 mx-1"></div>
                   <button onClick={deleteSelected} className="p-1.5 hover:bg-red-50 text-slate-600 hover:text-red-500 rounded disabled:opacity-50" disabled={!selectedNodeId}><Trash2 size={16}/></button>
               </div>
@@ -438,7 +483,7 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
           {/* Sidebar Overlay for Mobile */}
           {isSidebarOpen && window.innerWidth < 768 && (
               <div 
-                className="absolute inset-0 bg-black/50 z-20"
+                className="absolute inset-0 bg-black/50 z-[60]"
                 onClick={() => setIsSidebarOpen(false)}
               ></div>
           )}
@@ -446,8 +491,8 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
           {/* Sidebar */}
           <div 
             className={`
-                absolute md:relative top-0 bottom-0 left-0 bg-white border-r border-slate-200 flex flex-col z-20 shadow-2xl md:shadow-none transition-all duration-300
-                ${isSidebarOpen ? 'w-64 translate-x-0' : 'w-0 md:w-0 -translate-x-full md:translate-x-0 overflow-hidden opacity-0 md:opacity-100'}
+                absolute md:relative top-0 bottom-0 left-0 bg-white border-r border-slate-200 flex flex-col z-[70] shadow-2xl md:shadow-none transition-all duration-300 ease-in-out
+                ${isSidebarOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full md:w-0 md:-translate-x-64'}
             `}
             style={{ width: isSidebarOpen ? '16rem' : '0' }}
           >
@@ -458,7 +503,7 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
                       </button>
                   ))}
               </div>
-              <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-slate-50/50 min-w-[16rem]">
+              <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-slate-50/50 min-w-[16rem] pb-24">
                   {activeCategory === 'STRUCTURE' && sugya.visualFlow?.map(s => renderSidebarItem(s, 'FLOW_STEP', s.label))}
                   {activeCategory === 'LOGIC' && sugya.logicSystem?.statements.map(s => renderSidebarItem(s, 'LOGIC_STMT', s.text))}
                   {activeCategory === 'OPINIONS' && sugya.perspectives.map(p => renderSidebarItem(p, 'PERSPECTIVE', p.scholarName))}
@@ -469,22 +514,31 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
           <div 
             ref={canvasRef}
             id="canvas-bg"
-            className="flex-1 relative bg-[#fdfbf7] overflow-hidden cursor-crosshair touch-none" // touch-none is crucial for preventing scrolling
+            className={`flex-1 relative bg-[#fdfbf7] overflow-hidden touch-none ${isPanning ? 'cursor-grabbing' : 'cursor-default'}`}
             style={{ 
+                // Grid pattern moves with Pan state for visual feedback
                 backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', 
-                backgroundSize: '24px 24px' 
+                backgroundSize: '24px 24px',
+                backgroundPosition: `${pan.x}px ${pan.y}px`
             }}
             onMouseDown={handleCanvasInput}
             onMouseMove={handleInputMove}
             onMouseUp={handleInputEnd}
+            onMouseLeave={handleInputEnd}
             onTouchStart={handleCanvasInput}
             onTouchMove={handleInputMove}
             onTouchEnd={handleInputEnd}
           >
-              <div style={{ transform: `scale(${scale})`, transformOrigin: '0 0', width: '100%', height: '100%' }}>
+              {/* Transform Container - Panning applies here */}
+              <div style={{ 
+                  transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`, 
+                  transformOrigin: '0 0', 
+                  width: '100%', 
+                  height: '100%' 
+              }}>
                   
                   {/* SVG Layer */}
-                  <svg className="absolute inset-0 w-full h-full pointer-events-none z-0 overflow-visible">
+                  <svg className="absolute inset-0 overflow-visible pointer-events-none z-0" style={{ width: '100%', height: '100%' }}>
                       <defs>
                         <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
                           <polygon points="0 0, 10 3.5, 0 7" fill="#94a3b8" />
@@ -635,7 +689,7 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
                                   </div>
                               )}
 
-                              {/* Connection Handles - Hidden on touch devices to prevent accidental connections? Or kept small? */}
+                              {/* Connection Handles */}
                               {!isEditing && ['top', 'right', 'bottom', 'left'].map((handle) => {
                                   const posStyles = {
                                       top: { top: -6, left: '50%', transform: 'translateX(-50%)' },
@@ -656,7 +710,6 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
                                           onMouseUp={(e) => handleHandleEnd(e, node.id, handle as HandlePosition)}
                                           onTouchStart={(e) => handleHandleStart(e, node.id, handle as HandlePosition)}
                                           onTouchEnd={(e) => {
-                                              // Simplified touch connection for now: just stop dragging
                                               setConnectingState(null);
                                           }}
                                       />
@@ -698,7 +751,7 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
                       );
                   })}
                   
-                  {/* Cursors */}
+                  {/* Cursors (Visual only, relative to canvas 0,0) */}
                   {showCursors && collaborators.map(c => (
                       <div key={c.id} className="absolute pointer-events-none transition-all duration-700 ease-in-out z-50 hidden md:block" style={{ left: c.x, top: c.y }}>
                           <MousePointer2 size={24} fill={c.color} className="text-white drop-shadow" />
@@ -710,9 +763,9 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
           </div>
           
           {/* Zoom Controls */}
-          <div className="absolute bottom-6 right-6 flex flex-col gap-2 bg-white rounded-lg shadow-md border border-slate-200 p-1 z-10">
-              <button onClick={() => setScale(s => Math.min(s + 0.1, 2))} className="p-2 hover:bg-slate-100 rounded text-slate-600"><ZoomIn size={18} /></button>
-              <button onClick={() => setScale(s => Math.max(s - 0.1, 0.5))} className="p-2 hover:bg-slate-100 rounded text-slate-600"><ZoomOut size={18} /></button>
+          <div className="absolute bottom-24 md:bottom-6 right-6 flex flex-col gap-2 bg-white rounded-lg shadow-md border border-slate-200 p-1 z-10">
+              <button onClick={() => setScale(s => Math.min(s + 0.1, 2))} className="p-3 md:p-2 hover:bg-slate-100 rounded text-slate-600 active:bg-slate-200"><ZoomIn size={20} /></button>
+              <button onClick={() => setScale(s => Math.max(s - 0.1, 0.5))} className="p-3 md:p-2 hover:bg-slate-100 rounded text-slate-600 active:bg-slate-200"><ZoomOut size={20} /></button>
           </div>
       </div>
     </div>
