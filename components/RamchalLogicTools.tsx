@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { LogicSystemData, LogicStatement } from '../types';
 import { Network, GitBranch, Split, CheckCircle2, AlertTriangle, Lightbulb, Sparkles } from 'lucide-react';
@@ -19,15 +20,9 @@ export const RamchalLogicTools: React.FC<Props> = ({ data, onGenerateAi, isGener
               <Network size={64} className="text-slate-300 mb-6" />
               <h3 className="text-2xl font-bold text-slate-800 mb-2">Ramchal Logic System Empty</h3>
               <p className="text-slate-500 max-w-md mb-8">
-                  Generate a deep logical breakdown of this sugya using the methodology of the Ramchal (Derech Tevunos).
+                  No logic breakdown available for this sugya.
               </p>
-              <button 
-                onClick={onGenerateAi}
-                className="flex items-center gap-3 px-8 py-4 bg-indigo-600 text-white rounded-full font-bold shadow-lg hover:bg-indigo-700 hover:scale-105 transition-all"
-              >
-                  <Sparkles size={20} />
-                  Generate Logic System
-              </button>
+              {/* Generate button removed */}
           </div>
       )
   }

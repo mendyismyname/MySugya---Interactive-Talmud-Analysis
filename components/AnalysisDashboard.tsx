@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { AnalysisComponent, ModernApplication, VisualFlowStep, SugyaSection, LogicStatement } from '../types';
 import { Briefcase, Gavel, Scale, BookOpen, ArrowRight, DollarSign, BrainCircuit, ArrowDown, Sparkles, Network, AlertTriangle, Split, CheckCircle2, ChevronDown, Check, X } from 'lucide-react';
@@ -35,13 +36,7 @@ export const AnalysisDashboard: React.FC<Props> = ({ sugya, section, onSelectNod
                 <p className="text-stone-500 mb-8 font-serif italic">
                     Deep analysis content is missing for this Sugya.
                 </p>
-                <button 
-                    onClick={onGenerateAi}
-                    className="flex items-center justify-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-sm font-bold uppercase tracking-widest text-xs shadow-lg hover:bg-slate-800 hover:-translate-y-1 transition-all w-full"
-                >
-                    <Sparkles size={16} className="text-amber-400" />
-                    Generate with AI
-                </button>
+                {/* AI Generation Disabled for Static Deployment */}
               </div>
           </div>
       )
@@ -436,12 +431,7 @@ export const AnalysisDashboard: React.FC<Props> = ({ sugya, section, onSelectNod
           </div>
 
           <div className="flex flex-col items-end w-1/4 hidden md:flex">
-               <button 
-                  onClick={onGenerateAi}
-                  className="flex items-center gap-2 text-stone-400 hover:text-indigo-600 transition-colors text-[10px] font-bold uppercase tracking-widest"
-              >
-                  <Sparkles size={12} /> Regenerate Data
-              </button>
+             {/* Regenerate Button Removed for Static Mode */}
           </div>
       </div>
 

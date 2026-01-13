@@ -14,7 +14,7 @@ import { LogicNode, Concept, StudyStage } from './types';
 import { 
     BookOpen, Settings, BrainCircuit, X, ChevronRight, Layers, Book, 
     SidebarClose, SidebarOpen, ZoomIn, Map, Home, Lightbulb, ListTree, GripHorizontal,
-    ChevronDown, Search, Gavel, FileText, Network, Sparkles, Workflow, ExternalLink, Video
+    ChevronDown, Search, Gavel, FileText, Network, Sparkles, Workflow, ExternalLink, Video, GitFork
 } from 'lucide-react';
 import { explainConcept, generateComparison, generateSugyaDeepData } from './services/geminiService';
 
@@ -485,7 +485,16 @@ const App: React.FC = () => {
                 <Home size={14} /> Library
             </button>
             
-            <div className="mt-4 text-center">
+            <div className="mt-4 flex flex-col items-center gap-2">
+                <a 
+                    href="https://ai.studio/apps/drive/1zAPorQkB28G1ZcIfW8Nzgkbp25qCnDFK?fullscreenApplet=true" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center justify-center gap-2 text-[10px] text-white bg-indigo-600 hover:bg-indigo-700 py-1.5 rounded uppercase tracking-widest font-bold transition-colors"
+                >
+                    <GitFork size={12} /> Fork & Edit
+                </a>
+
                 <a 
                     href="https://x.com/mendysel" 
                     target="_blank" 
