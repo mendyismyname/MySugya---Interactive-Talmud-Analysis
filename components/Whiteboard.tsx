@@ -6,7 +6,7 @@ import {
     X, User, Network, Workflow, BookOpen, Layers,
     LogOut, Eye, EyeOff, Square, Circle, Diamond, Edit3, Trash2,
     ZoomIn, ZoomOut, Save, Share2, MousePointer2, Plus, ArrowRight,
-    Triangle, MoreHorizontal, FileText, AlignLeft, MessageSquare
+    Triangle, MoreHorizontal, FileText, AlignLeft, MessageSquare, Menu
 } from 'lucide-react';
 
 interface Props {
@@ -62,7 +62,8 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
   const [dragState, setDragState] = useState<DragState | null>(null);
   const [connectingState, setConnectingState] = useState<ConnectingState | null>(null);
   
-  // Editing State
+  // UI State
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Default closed on mobile, logic below handles desktop
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
   const [expandedNoteId, setExpandedNoteId] = useState<string | null>(null);
 
@@ -70,6 +71,13 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
   const [activeCategory, setActiveCategory] = useState<string>('STRUCTURE');
 
   const canvasRef = useRef<HTMLDivElement>(null);
+
+  // Set sidebar open on desktop mount
+  useEffect(() => {
+      if (window.innerWidth >= 768) {
+          setIsSidebarOpen(true);
+      }
+  }, []);
 
   // --- MOCK COLLABORATORS ---
   const [collaborators, setCollaborators] = useState([
@@ -96,8 +104,12 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
         const newNodes: CanvasNode[] = [];
         const newConns: Connection[] = [];
         
-        const mapFlow = (steps: VisualFlowStep[], startX: number, startY: number, parentId?: string) => {
-            let currentY = startY;
+        // Adjust start position for mobile
+        const startX = window.innerWidth < 768 ? 50 : 600;
+        const startY = 100;
+
+        const mapFlow = (steps: VisualFlowStep[], curX: number, curY: number, parentId?: string) => {
+            let currentY = curY;
             steps.forEach((step) => {
                 const nodeId = `flow-${step.id}`;
                 let colorClass = 'bg-white border-slate-200';
@@ -109,7 +121,7 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
                 
                 newNodes.push({
                     id: nodeId,
-                    x: startX,
+                    x: curX,
                     y: currentY,
                     type: 'FLOW_STEP',
                     label: step.label,
@@ -135,7 +147,7 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
                 if (step.branches && step.branches.length > 0) {
                     const branchWidth = 320;
                     const totalWidth = (step.branches.length - 1) * branchWidth;
-                    let currentBranchX = startX - (totalWidth / 2);
+                    let currentBranchX = curX - (totalWidth / 2);
                     
                     step.branches.forEach(branch => {
                          const branchId = `flow-${branch.id}`;
@@ -171,7 +183,7 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
             });
         };
 
-        mapFlow(sugya.visualFlow, 600, 100);
+        mapFlow(sugya.visualFlow, startX, startY);
         setNodes(newNodes);
         setConnections(newConns);
     }
@@ -179,12 +191,24 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
 
   // --- HELPERS ---
 
-  const getClientCoords = (e: React.MouseEvent | MouseEvent) => {
+  const getClientCoords = (e: React.MouseEvent | MouseEvent | React.TouchEvent | TouchEvent) => {
       const rect = canvasRef.current?.getBoundingClientRect();
       if (!rect) return { x: 0, y: 0 };
+      
+      let clientX, clientY;
+      if ('touches' in e && e.touches.length > 0) {
+          clientX = e.touches[0].clientX;
+          clientY = e.touches[0].clientY;
+      } else if ('clientX' in e) {
+          clientX = (e as React.MouseEvent).clientX;
+          clientY = (e as React.MouseEvent).clientY;
+      } else {
+          return { x: 0, y: 0 };
+      }
+
       return {
-          x: (e.clientX - rect.left) / scale,
-          y: (e.clientY - rect.top) / scale
+          x: (clientX - rect.left) / scale,
+          y: (clientY - rect.top) / scale
       };
   };
 
@@ -200,15 +224,16 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
 
   // --- HANDLERS ---
 
-  const handleCanvasMouseDown = (e: React.MouseEvent) => {
-      // Logic: Since all nodes/handles/popovers call e.stopPropagation(),
-      // if this event fires, it means we clicked on the background.
+  const handleCanvasInput = (e: React.MouseEvent | React.TouchEvent) => {
+      // Background click logic handled via stopPropagation on elements
+      if (dragState || connectingState) return;
+      
       setSelectedNodeId(null);
       setEditingNodeId(null);
       setExpandedNoteId(null);
   };
 
-  const handleNodeMouseDown = (e: React.MouseEvent, id: string) => {
+  const handleNodeStart = (e: React.MouseEvent | React.TouchEvent, id: string) => {
       e.stopPropagation();
       const coords = getClientCoords(e);
       const node = nodes.find(n => n.id === id);
@@ -222,7 +247,7 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
       }
   };
 
-  const handleHandleMouseDown = (e: React.MouseEvent, nodeId: string, handle: HandlePosition) => {
+  const handleHandleStart = (e: React.MouseEvent | React.TouchEvent, nodeId: string, handle: HandlePosition) => {
       e.stopPropagation();
       const coords = getClientCoords(e);
       setConnectingState({
@@ -233,7 +258,7 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
       });
   };
 
-  const handleHandleMouseUp = (e: React.MouseEvent, targetNodeId: string, targetHandle: HandlePosition) => {
+  const handleHandleEnd = (e: React.MouseEvent | React.TouchEvent, targetNodeId: string, targetHandle: HandlePosition) => {
       e.stopPropagation();
       if (connectingState && connectingState.sourceId !== targetNodeId) {
           setConnections(prev => [...prev, {
@@ -247,7 +272,7 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
       setConnectingState(null);
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handleInputMove = (e: React.MouseEvent | React.TouchEvent) => {
       const coords = getClientCoords(e);
 
       if (dragState) {
@@ -263,7 +288,7 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
       }
   };
 
-  const handleMouseUp = () => {
+  const handleInputEnd = () => {
       setDragState(null);
       setConnectingState(null);
   };
@@ -321,18 +346,18 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
   const renderSidebarItem = (item: any, type: string, label: string) => (
     <div 
       key={`${type}-${item.id}`} 
-      className="p-3 bg-white border border-slate-200 rounded-lg text-xs hover:border-indigo-400 cursor-grab active:cursor-grabbing shadow-sm flex items-center justify-between group transition-all"
+      className="p-3 bg-white border border-slate-200 rounded-lg text-xs hover:border-indigo-400 cursor-pointer md:cursor-grab active:cursor-grabbing shadow-sm flex items-center justify-between group transition-all"
       draggable
       onDragEnd={(e) => {
           const rect = canvasRef.current?.getBoundingClientRect();
           if (rect) {
               const x = (e.clientX - rect.left) / scale;
               const y = (e.clientY - rect.top) / scale;
-              const isFlow = type === 'FLOW_STEP';
               
               setNodes(prev => [...prev, {
                   id: `${type}-${item.id}-${Date.now()}`,
-                  x, y,
+                  x: x > 0 ? x : 100, // Fallback if dropped outside
+                  y: y > 0 ? y : 100,
                   type: type as any,
                   label: label,
                   content: item.description || item.englishText || item.text || '',
@@ -344,61 +369,96 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
               }]);
           }
       }}
+      onClick={() => {
+          // Click to add support for Mobile
+          setNodes(prev => [...prev, {
+              id: `${type}-${item.id}-${Date.now()}`,
+              x: 50, // Default position
+              y: 50 + (nodes.length * 20),
+              type: type as any,
+              label: label,
+              content: item.description || item.englishText || item.text || '',
+              data: item,
+              color: 'bg-white border-slate-200',
+              shape: 'RECT',
+              width: 220,
+              height: 120
+          }]);
+          if(window.innerWidth < 768) setIsSidebarOpen(false);
+      }}
     >
         <span className="font-bold text-slate-800 truncate">{label}</span>
-        <GripHorizontal size={14} className="text-slate-300 group-hover:text-slate-500" />
+        <Plus size={14} className="text-slate-300 group-hover:text-indigo-500 md:hidden" />
+        <GripHorizontal size={14} className="text-slate-300 group-hover:text-slate-500 hidden md:block" />
     </div>
   );
 
   return (
-    <div className="h-full flex flex-col bg-slate-50 overflow-hidden">
+    <div className="h-full flex flex-col bg-slate-50 overflow-hidden relative">
       
       {/* Header */}
-      <div className="h-14 bg-white border-b border-slate-200 flex items-center px-4 justify-between z-20 shadow-sm">
+      <div className="h-14 bg-white border-b border-slate-200 flex items-center px-4 justify-between z-30 shadow-sm shrink-0">
           <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                  <div className="bg-indigo-600 text-white p-1.5 rounded mr-1"><LayoutTemplate size={18} /></div>
-                  <h2 className="font-bold text-slate-800 text-sm">MySugya Whiteboard</h2>
-              </div>
-              <div className="h-6 w-px bg-slate-200"></div>
+              <button 
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className={`p-2 rounded-lg transition-colors ${isSidebarOpen ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:bg-slate-100'}`}
+              >
+                  <Menu size={20} />
+              </button>
               
-              {/* Toolbar */}
-              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
-                  <button onClick={() => addGenericShape('RECT', 400, 300)} className="p-1.5 hover:bg-white rounded text-slate-600" title="Rectangle"><Square size={16}/></button>
-                  <button onClick={() => addGenericShape('CIRCLE', 450, 300)} className="p-1.5 hover:bg-white rounded text-slate-600" title="Circle"><Circle size={16}/></button>
-                  <button onClick={() => addGenericShape('DIAMOND', 500, 300)} className="p-1.5 hover:bg-white rounded text-slate-600" title="Diamond"><Diamond size={16}/></button>
+              <div className="flex items-center gap-2">
+                  <div className="bg-indigo-600 text-white p-1.5 rounded mr-1 hidden md:block"><LayoutTemplate size={18} /></div>
+                  <h2 className="font-bold text-slate-800 text-sm">Whiteboard</h2>
+              </div>
+              
+              {/* Toolbar - Compact on Mobile */}
+              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg ml-2 overflow-x-auto no-scrollbar">
+                  <button onClick={() => addGenericShape('RECT', 150, 150)} className="p-1.5 hover:bg-white rounded text-slate-600" title="Rectangle"><Square size={16}/></button>
+                  <button onClick={() => addGenericShape('CIRCLE', 200, 150)} className="p-1.5 hover:bg-white rounded text-slate-600" title="Circle"><Circle size={16}/></button>
+                  <button onClick={() => addGenericShape('DIAMOND', 250, 150)} className="p-1.5 hover:bg-white rounded text-slate-600" title="Diamond"><Diamond size={16}/></button>
                   <div className="w-px h-4 bg-slate-300 mx-1"></div>
                   <button onClick={deleteSelected} className="p-1.5 hover:bg-red-50 text-slate-600 hover:text-red-500 rounded disabled:opacity-50" disabled={!selectedNodeId}><Trash2 size={16}/></button>
               </div>
           </div>
           
-          <div className="flex items-center gap-3">
-              <button onClick={() => setShowCursors(!showCursors)} className={`p-2 rounded-full ${showCursors ? 'bg-indigo-50 text-indigo-600' : 'text-slate-400'}`}>
-                  {showCursors ? <Eye size={18}/> : <EyeOff size={18}/>}
-              </button>
-              <div className="flex -space-x-2">
+          <div className="flex items-center gap-2 md:gap-3">
+              <div className="hidden md:flex -space-x-2">
                   {collaborators.map(c => (
                       <div key={c.id} className="w-8 h-8 rounded-full border-2 border-white flex items-center justify-center text-xs font-bold text-white shadow-sm" style={{ backgroundColor: c.color }}>{c.name[0]}</div>
                   ))}
               </div>
-              <div className="h-6 w-px bg-slate-200"></div>
-              <button onClick={onClose} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-300 text-slate-700 text-xs font-bold rounded hover:bg-slate-50">
-                  <LogOut size={14} /> Close
+              <button onClick={onClose} className="p-2 md:px-3 md:py-1.5 bg-white border border-slate-300 text-slate-700 text-xs font-bold rounded hover:bg-slate-50 flex items-center gap-2">
+                  <LogOut size={16} /> <span className="hidden md:inline">Close</span>
               </button>
           </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative">
+          
+          {/* Sidebar Overlay for Mobile */}
+          {isSidebarOpen && window.innerWidth < 768 && (
+              <div 
+                className="absolute inset-0 bg-black/50 z-20"
+                onClick={() => setIsSidebarOpen(false)}
+              ></div>
+          )}
+
           {/* Sidebar */}
-          <div className="w-64 bg-white border-r border-slate-200 flex flex-col z-10">
-              <div className="flex border-b border-slate-200">
+          <div 
+            className={`
+                absolute md:relative top-0 bottom-0 left-0 bg-white border-r border-slate-200 flex flex-col z-20 shadow-2xl md:shadow-none transition-all duration-300
+                ${isSidebarOpen ? 'w-64 translate-x-0' : 'w-0 md:w-0 -translate-x-full md:translate-x-0 overflow-hidden opacity-0 md:opacity-100'}
+            `}
+            style={{ width: isSidebarOpen ? '16rem' : '0' }}
+          >
+              <div className="flex border-b border-slate-200 min-w-[16rem]">
                   {['STRUCTURE', 'LOGIC', 'OPINIONS'].map(cat => (
                       <button key={cat} onClick={() => setActiveCategory(cat)} className={`flex-1 py-3 text-[10px] font-bold uppercase ${activeCategory === cat ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-500 hover:bg-slate-50'}`}>
                           {cat}
                       </button>
                   ))}
               </div>
-              <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-slate-50/50">
+              <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-slate-50/50 min-w-[16rem]">
                   {activeCategory === 'STRUCTURE' && sugya.visualFlow?.map(s => renderSidebarItem(s, 'FLOW_STEP', s.label))}
                   {activeCategory === 'LOGIC' && sugya.logicSystem?.statements.map(s => renderSidebarItem(s, 'LOGIC_STMT', s.text))}
                   {activeCategory === 'OPINIONS' && sugya.perspectives.map(p => renderSidebarItem(p, 'PERSPECTIVE', p.scholarName))}
@@ -409,14 +469,17 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
           <div 
             ref={canvasRef}
             id="canvas-bg"
-            className="flex-1 relative bg-[#fdfbf7] overflow-hidden cursor-crosshair"
+            className="flex-1 relative bg-[#fdfbf7] overflow-hidden cursor-crosshair touch-none" // touch-none is crucial for preventing scrolling
             style={{ 
                 backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', 
                 backgroundSize: '24px 24px' 
             }}
-            onMouseDown={handleCanvasMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
+            onMouseDown={handleCanvasInput}
+            onMouseMove={handleInputMove}
+            onMouseUp={handleInputEnd}
+            onTouchStart={handleCanvasInput}
+            onTouchMove={handleInputMove}
+            onTouchEnd={handleInputEnd}
           >
               <div style={{ transform: `scale(${scale})`, transformOrigin: '0 0', width: '100%', height: '100%' }}>
                   
@@ -492,15 +555,15 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
                                 left: node.x, top: node.y, 
                                 width: node.width, height: node.height 
                             }}
-                            onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
+                            onMouseDown={(e) => handleNodeStart(e, node.id)}
+                            onTouchStart={(e) => handleNodeStart(e, node.id)}
                             onDoubleClick={(e) => handleDoubleClick(e, node.id)}
                           >
                               {/* Content Container (Counter-rotated for Diamond) */}
-                              {/* IMPORTANT: This inner container handles clipping for shapes like Circle/Diamond */}
                               <div className={`w-full h-full flex flex-col overflow-hidden relative ${node.shape === 'DIAMOND' ? '-rotate-45 items-center justify-center text-center p-8' : 'p-3'}`}>
                                   
                                   {isEditing ? (
-                                      <div className="flex flex-col h-full gap-2 w-full" onMouseDown={e => e.stopPropagation()}>
+                                      <div className="flex flex-col h-full gap-2 w-full" onMouseDown={e => e.stopPropagation()} onTouchStart={e => e.stopPropagation()}>
                                           <input 
                                               className="text-xs font-bold border-b border-slate-300 bg-transparent outline-none pb-1"
                                               value={node.label}
@@ -531,11 +594,12 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
                                       </div>
                                   ) : (
                                       <>
-                                          {/* Note Indicator - Kept inside if it fits, but handled carefuly */}
+                                          {/* Note Indicator */}
                                           {node.note && (
                                               <div 
                                                 className="absolute top-1 right-1 z-20 cursor-help"
                                                 onClick={(e) => { e.stopPropagation(); setExpandedNoteId(isNoteOpen ? null : node.id); }}
+                                                onTouchEnd={(e) => { e.stopPropagation(); setExpandedNoteId(isNoteOpen ? null : node.id); }}
                                               >
                                                   <StickyNote size={14} className="text-yellow-500 fill-yellow-100" />
                                               </div>
@@ -547,7 +611,6 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
                                                   {node.label}
                                               </div>
                                               
-                                              {/* Hide detail content on Diamond/Circle if too small or if preferred */}
                                               <div className={`text-[10px] text-slate-600 leading-snug font-medium opacity-80 ${node.shape === 'CIRCLE' ? 'text-center line-clamp-3' : 'line-clamp-4'}`}>
                                                   {node.content}
                                               </div>
@@ -556,12 +619,13 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
                                   )}
                               </div>
 
-                              {/* Popover Note - MOVED OUTSIDE THE INNER OVERFLOW DIV */}
+                              {/* Popover Note */}
                               {isNoteOpen && !isEditing && (
                                   <div 
                                     className={`absolute -right-36 top-0 w-32 bg-yellow-100 border border-yellow-300 p-2 rounded shadow-lg z-50 text-[10px] text-stone-700 animate-in fade-in zoom-in-50 ${node.shape === 'DIAMOND' ? '-rotate-45 origin-center' : ''}`}
                                     style={node.shape === 'DIAMOND' ? { right: '-9rem', top: '-2rem' } : {}}
                                     onMouseDown={e => e.stopPropagation()}
+                                    onTouchStart={e => e.stopPropagation()}
                                   >
                                       <div className="font-bold mb-1 border-b border-yellow-200 pb-1 text-yellow-800 flex justify-between items-center">
                                           <span>Note</span>
@@ -571,25 +635,30 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
                                   </div>
                               )}
 
-                              {/* Connection Handles */}
+                              {/* Connection Handles - Hidden on touch devices to prevent accidental connections? Or kept small? */}
                               {!isEditing && ['top', 'right', 'bottom', 'left'].map((handle) => {
                                   const posStyles = {
-                                      top: { top: -4, left: '50%', transform: 'translateX(-50%)' },
-                                      right: { right: -4, top: '50%', transform: 'translateY(-50%)' },
-                                      bottom: { bottom: -4, left: '50%', transform: 'translateX(-50%)' },
-                                      left: { left: -4, top: '50%', transform: 'translateY(-50%)' }
+                                      top: { top: -6, left: '50%', transform: 'translateX(-50%)' },
+                                      right: { right: -6, top: '50%', transform: 'translateY(-50%)' },
+                                      bottom: { bottom: -6, left: '50%', transform: 'translateX(-50%)' },
+                                      left: { left: -6, top: '50%', transform: 'translateY(-50%)' }
                                   };
                                   return (
                                       <div
                                           key={handle}
                                           className={`
-                                              absolute w-2.5 h-2.5 bg-white border border-slate-400 rounded-full cursor-crosshair transition-opacity z-30
+                                              absolute w-3 h-3 bg-white border border-slate-400 rounded-full cursor-crosshair transition-opacity z-30
                                               ${isSelected || connectingState ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
-                                              hover:bg-blue-500 hover:border-blue-600 hover:scale-125
+                                              active:bg-blue-500 active:scale-125
                                           `}
                                           style={posStyles[handle as HandlePosition]}
-                                          onMouseDown={(e) => handleHandleMouseDown(e, node.id, handle as HandlePosition)}
-                                          onMouseUp={(e) => handleHandleMouseUp(e, node.id, handle as HandlePosition)}
+                                          onMouseDown={(e) => handleHandleStart(e, node.id, handle as HandlePosition)}
+                                          onMouseUp={(e) => handleHandleEnd(e, node.id, handle as HandlePosition)}
+                                          onTouchStart={(e) => handleHandleStart(e, node.id, handle as HandlePosition)}
+                                          onTouchEnd={(e) => {
+                                              // Simplified touch connection for now: just stop dragging
+                                              setConnectingState(null);
+                                          }}
                                       />
                                   );
                               })}
@@ -597,8 +666,9 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
                               {/* Context Menu (Shape/Color Switcher) */}
                               {isSelected && !editingNodeId && !dragState && (
                                   <div 
-                                    className="absolute -top-12 left-1/2 -translate-x-1/2 bg-white p-1 rounded-lg shadow-xl border border-slate-200 flex flex-col gap-1 animate-in fade-in slide-in-from-bottom-2 z-40 min-w-[140px]"
+                                    className="absolute -top-14 left-1/2 -translate-x-1/2 bg-white p-1 rounded-lg shadow-xl border border-slate-200 flex flex-col gap-1 animate-in fade-in slide-in-from-bottom-2 z-40 min-w-[140px]"
                                     onMouseDown={e => e.stopPropagation()}
+                                    onTouchStart={e => e.stopPropagation()}
                                   >
                                       {/* Top Row: Actions */}
                                       <div className="flex justify-between items-center gap-2 border-b border-slate-100 pb-1 mb-0.5 px-1">
@@ -630,7 +700,7 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
                   
                   {/* Cursors */}
                   {showCursors && collaborators.map(c => (
-                      <div key={c.id} className="absolute pointer-events-none transition-all duration-700 ease-in-out z-50" style={{ left: c.x, top: c.y }}>
+                      <div key={c.id} className="absolute pointer-events-none transition-all duration-700 ease-in-out z-50 hidden md:block" style={{ left: c.x, top: c.y }}>
                           <MousePointer2 size={24} fill={c.color} className="text-white drop-shadow" />
                           <span className="ml-4 -mt-4 bg-slate-800 text-white text-[10px] px-2 py-0.5 rounded shadow absolute whitespace-nowrap">{c.name}</span>
                       </div>
@@ -640,7 +710,7 @@ export const Whiteboard: React.FC<Props> = ({ sugya, onClose }) => {
           </div>
           
           {/* Zoom Controls */}
-          <div className="absolute bottom-6 right-6 flex flex-col gap-2 bg-white rounded-lg shadow-md border border-slate-200 p-1">
+          <div className="absolute bottom-6 right-6 flex flex-col gap-2 bg-white rounded-lg shadow-md border border-slate-200 p-1 z-10">
               <button onClick={() => setScale(s => Math.min(s + 0.1, 2))} className="p-2 hover:bg-slate-100 rounded text-slate-600"><ZoomIn size={18} /></button>
               <button onClick={() => setScale(s => Math.max(s - 0.1, 0.5))} className="p-2 hover:bg-slate-100 rounded text-slate-600"><ZoomOut size={18} /></button>
           </div>
