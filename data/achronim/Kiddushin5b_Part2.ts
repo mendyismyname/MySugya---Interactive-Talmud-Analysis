@@ -67,7 +67,7 @@ export const MAHARSHDAM_FULL: Perspective = {
 ולהיות ראיתי מקום לבעל הדין לפקפק ולגמגם בזה מההיא שהביא מספר יראים וז"ל בהגהות
 פ"ט מהרמב"ם על מי שהוא משודך עם בת פלוני והיו לו בנות אחרות, ואמר המשדך לאבי
 המשודכת בתך מקודשת לי.
-וכתב רא"ם דתפסי קידושין בכלם וצריכות כלם גט כו' עד שאפילו ברור לנו שדעתו של המקדש
+וכתב רא"ם דתפסי קדושין בכלם וצריכות כלם גט כו' עד שאפילו ברור לנו שדעתו של המקדש
 על הגדולה אין מחשבתו מבטלת הדבר שהוציא מפיו, משמע דדברי' שבלב אינם דברי" הואיל
 ושנה מלשון העולם המבררין קדושיהן.
 וא"כ יש לאומר שיאמר דבנדון דידן נמי אעפ"י שדעתו לקדשה אליו אעפ"כ כיון שלא ברר דבריו
@@ -138,6 +138,11 @@ And since he called her "my betrothed" and did not suffice with saying "Leah", h
 This is what appears correct to me.`,
         concepts: ['c2', 'c5'],
         children: []
+    },
+    analysis: {
+        focus: "Role of Context (Umdana)",
+        chiddush: "Explicit 'Li' is not required if the parties are engaged and context is clear.",
+        reasoning: "A person doesn't speak in vain. If he says 'For Kiddushin' to his fiancee, the context provides the missing 'To Me'."
     }
 };
 
@@ -165,9 +170,9 @@ export const AVNEI_MILUIM_FULL: Perspective = {
 בהודאתה.
 וכן נראה מוכח מש"ס פ' האיש מקדש (נ, א) ודברים שבלב אינן דברים מנ"ל לרבא הא
 בו' אלא אמר אביי מהכא בכולם אעפ"י שאמרה בלבי היה להתקדש אעפ"כ אינה
-מקודשת ואמאז הא קאמרה בלבי ודח דלמא שאני התם [דכלון] דאתניה לאו בל
+מקודשת ואמאז הא קאמרה בלב*י ודח* דלמא שאני התם [דכלון] דאתניה לאו בל
 כמינה דעקרה ע"ש, ותיפוק ליה דקידושץ בעי סהדי ואם היה בלבה להתקדש מאי
-הו כיון דליכא עדים בזה. ולדעת הרמב"ם (פ"ז מאישות הכ"ג) דבביטול ומחילת התנאי אין
+הו כיון דליכא עדים בזה. ולדעת הרמבם (פ"ז מאישות הכ"ג) דבביטול ומחילת התנאי אין
 צריך עדים ניחא דהתם הוי בביטול התנאי ולא בעי סהדי אבל לדעת הראב"ד
 ודעימיה דסברי דמחילת התנאי נמי בעי סהדי א"כ מאי קאמר הא קאמרא בלבי הי
 להתקדש דהא ליכא סהדי בזה שבלבי ומוכח דרצון האשה לא בעי סהדי.
@@ -184,6 +189,11 @@ And even according to the Poskim who hold that an agent for receiving (Shliach K
 But as long as the man concludes the Kiddushin in front of the woman [himself], even though there are no witnesses on what is in her heart, her admission [that she consented] is effective. And this still requires further study (Tzarich Iyun).`,
         concepts: ['c1'],
         children: []
+    },
+    analysis: {
+        focus: "Asymmetry of Consent",
+        chiddush: "A woman's consent does not require witnesses, unlike the man's act.",
+        reasoning: "The man creates the Status (Ervah). The woman merely accepts it. Acceptance is a revelation of will, which doesn't need formal testimony."
     }
 };
 
@@ -242,6 +252,11 @@ And if you ask: How is it different from Divorce where we say "There is a Handle
 According to the Ran it is fine for he did no action for her [so a Handle is needed]... But according to Rambam he gave to her! And this is not a question at all, for he did not give to her except for the sake of her friend, and when he said "And You" he did not do a proving action for her.`,
         concepts: [],
         children: []
+    },
+    analysis: {
+        focus: "Systemic Consistency",
+        chiddush: "Rambam implies Handles work in Kiddushin based on comparisons to Tzedaka.",
+        reasoning: "The Talmudic phrase 'Et L'Lomar' implies the premise is accepted. Since it uses this regarding Tzedaka/Peah, it applies here too."
     }
 };
 
@@ -330,5 +345,10 @@ And furthermore, this Shakla V'Tarya (back and forth) of ours is only if we say 
 And even due to "Kol" (Public Rumor) there is no concern here, for certainly a rumor went out that he betrothed her with deceit not in the way of betrothals, and people will say "The Rabbis annulled his Kiddushin". And Blessed be the Truth... signed Chaim of Volozhin, Pesach 1817.`,
         concepts: ['c1'],
         children: []
+    },
+    analysis: {
+        focus: "Action vs Silence",
+        chiddush: "Throwing the money constitutes a protest (Mecha'ah), overriding silence.",
+        reasoning: "Silence is only consent when it implies acceptance. An act of disgrace proves rejection."
     }
 };

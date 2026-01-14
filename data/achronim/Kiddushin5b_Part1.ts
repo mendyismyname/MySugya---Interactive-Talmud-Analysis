@@ -25,15 +25,6 @@ export const BIRCHAS_SHMUEL_FULL: Perspective = {
 ואולם בביאור דברים שבלב דקיי"ל גבי חלות הקידושין וגיטין וקדושין... הוא דין ע"ז דהוי חסרון בהקנין...
 ונמצא דהך דינא אינו תלוי בסוגי' דדברים שבלב אפי' להס"ד דהרשב"א... ומבואר היטב קושי' הרשב"א שהק' מה מהני נזיר עובר לפניו...
 
-אות ה'
-ה) והנה במה שכתב לעיקר מה שצריך להשמיענו דאע"ג דבכל התורה כולה בעינן שיהא משמעות לשון הפה כמו שבלבו
-ואם לא כן הוי זה דברים שבלב, וכאן בנזיר דבעינן קרא דלבטא בשפתים, וילפינן מינה דבעינן פיו ולבו שוין...
-שאף על פי שאין בזה משמעות אצל כל העם... אלא דקאמר בלבו... מכל מקום ידות נדרים הוי כמו דיבור...
-ונראה לבוא אל ביאור דברי הגמ'... דהנה אם נאמר כס"ד דהרשב"א דהך דין דברים שבלב לאו דוקא היכא דהוי נגד הדיבור
-אלא אפי' היכא דלא הוי לשון משמעות אצל כל העם... א"כ בנזיר עובר לפניו ואמר אהא דהוי יד לנזירות... למה לא הוי חסרון בהקנין?
-ונראה דביאור הך דין דדברים שבלב... הוא דהמה מופקעים מדין דיבור לגמרי ע"י דדברים שבלב אינם דברים...
-לפיכך הוי המכר קיים בכל גווני אפילו לא סליק לארעא דישראל... מה שאין כן באומדנת דעת של המכר שפיר איכא דין דיבור.
-
 אות ו'
 ו) ולכאורה יש להוכיח להיפוך מזה, דהא עיקר הדין דפיו ולבו שוין כך איתא גם בהקדש, ובהקדש הא
 ליכא כלל דין דלבטא דהא מחשבה ג"כ מהני בהו.
@@ -62,11 +53,6 @@ And behold, it is difficult what the Gemara says in the beginning of Nazir: "Wha
 This is difficult: where is the lack here? Since a Nazir is passing before him, it is a "Proven Handle" (Yad Mochiach), so why would we think it fails "Mouth and Heart equal"?
 And according to the explanation of the Rashba, we are forced to say that because of "Words in the Heart are not things," it is like inventing a language...
 
-[Siman 1, Os 5]
-And regarding what he wrote that the main point is to teach us that even though generally in Torah we require the meaning of the mouth to match the heart... and here in Nazir where we derive "Piv V'Libo Shavin"... 
-Analysis: If we say like the Rashba's initial thought that "Words in the Heart" applies even where the speech has no meaning to the public... then regarding "Aha" (which is a Handle), why is it not a lack in the Acquisition?
-We must say the explanation of "Words in the Heart are not things" is that they are removed from the law of "Speech" entirely... Therefore, regarding Sale (Mamon), the act stands even if he didn't go to Israel (because the condition was only in his heart). However, regarding Assumed Intent (Umdana) of the sale, there IS a valid "Law of Speech" [because the context speaks].
-
 [Siman 1, Os 6]
 And ostensibly, one can prove the opposite [that 'Mouth and Heart Equal' is a general law, not specific to Speech-Acts], for the main law of 'Mouth and Heart Equal' exists also in Hekdesh (Consecration). And in Hekdesh, there is no law of 'Livta' (Expressing with lips) at all, for Thought alone works!
 However, the Gaon of Lomza... explained in the name of Maran HaGrach (R' Chaim Soloveitchik) zt"l...
@@ -78,6 +64,11 @@ But according to his [R' Chaim's] words it works out very well: Even without the
 Thus, Shmuel excludes [Thought] here based on "Livta bisfatayim", and this is what Tosfos were in doubt about...`,
         concepts: ['c3', 'c1', 'c2'],
         children: []
+    },
+    analysis: {
+        focus: "Categorization of Halachic Acts",
+        chiddush: "Kiddushin is a Mamon (Monetary) act, not an Issur (Prohibition) act like Nedarim.",
+        reasoning: "Proof from 'Dvarim Shebalev': In Kiddushin, hidden thoughts are ignored (Act dominates). In Nedarim, hidden thoughts can invalidate (Heart dominates)."
     }
 };
 
@@ -146,6 +137,11 @@ Rather, perforce, in all languages the law is the same, for the reason I wrote i
 And this is not like the language of Tosfos later (7a) regarding "Half of it with a Peruta"... and it requires further study (Tzarich Iyun) to settle the view of Tosfos.`,
         concepts: ['c2', 'c5'],
         children: []
+    },
+    analysis: {
+        focus: "Consistency of Talmudic Sages",
+        chiddush: "Distinction between types of Yad (Hekdesh vs Kinyan).",
+        reasoning: "Rav Papa's doubt in Nedarim is fundamental, while here he analyzes Shmuel's specific case."
     }
 };
 
@@ -175,47 +171,14 @@ export const CHASAM_SOFER_FULL: Perspective = {
 ופריך הש"ס שפיר. ובהא קיימי' למסקנא דאהא ואין נזיר עובר לפניו. והרי את מקודשת בלא לי
 שניהם אפילו יד לא הוה, ולק"מ קושית מהר"י פאלאק ז"ל הנ"ל:
 וארווח לן התם ריש נדרים דמוקי שמואל מתני' כר' יהודה משום דמתני' קשיתיה דקתני לא אוכל
-ואי ס"ד ידים שא"מ הוין ידים לך למה לי וע"ש, וקשה להתוס' והר"ן מברייתא דהתם דמוק*
-שמואל כרבנן וקתני נמי לך, ולהנ"ל א"ש דבודאי בלא לך אפילו יד לא הוה דמה לי את מקודשת
-בלא לי או לא אוכל בלא לך, אלא כתוס' כ' התם דהוה משמע לי' לשמואל דמתני במסרהב בו לאכול
-ע"ש וא"כ ה"ל כעסוקים באותו ענץ גיטה וקדושיה דבלא לי נמי ידים מוכיחות הוה כמ"ש רא"ש
-בשמעתץן. והה"נ במסרהב בו לאכול בלא לך נמי יד מיהת הו ונהי דמוכיח לא הוה ולא דמי לעסקי
-גיטץ וקידושין, כיון דהכא בא לסתור דבר שהץ עוסקים שהרי העסק היה שיאבל עמו והוא בא
-לנדור הנאה מאכילתו, משום כן יד מוכיח לא הוה, מ"מ יד מיהת הוה. ואי ס"ד ידים שא"מ הויץ
-ידים למה לי לך, וכל זה הוכיח במתני' דהוה משמע ליה לשמואל דמתני' מיירי טפי ממסרהב מברייתא...
-אמנם ר"ת בתוס' נדרים וכן בהר"ן הכא והתם לא ס"ל לחלק, אלא דבלא לי הוה נמי ידים אלא
-שאינם מוכיחות. אלא מ"מ מסקו דפליגי ביה אבי ורבא, והלכה כרבא דלא הויץ ידים, ור"ת גופיה
-משבש הגירסא שלה* נזיר כי היכי דתיקום רבא לא הויין ידים והכי הלכתא...
-אלא שבמרדכי סוף גיטין ראיתי בדעת השואל כונה אחרת בדעת הריב"א דשלה* נזיר הנ"ל אלא
-שקיצר ונראה לבאר כונתו דס"ל לאחד כל הסוגיא לאחדים...
-ואמנם הסוגיא דריש נזיר ס"ל כהלכתא כרבא דבעלמא לא בעיא מוכיח אלא מגיה בשמואל
-דקידושין דאמר לי אלא אפילו בלא לי נמ ומש"ה מקשה בפשיטות ש"מ ס"ל לשמואל ידים שא"מ
-לא הויין ידים וכפירש"י ריש נזיר ע"ש...
-ולשיטה זו אתיץן כל הסוגיות כפשטן ומבואר דס"ל לריב"א דבלא לי הוה יד עכ"פ אלא שאינו מוכיח...
-אלא דשם במרדכי בתשובות רבינו בחיי בר זוסף דחה דברי השואל וז"ל ומה שהביא ראיה מריב"א
-א"כ מאי פריך לאביי בנזיר יתרץ טעמא דידי לא הוה ידים מלא יפליא ילפי' עב"ל...
-ונלע"ד דלא נדחו דברי ריב"א וגירסתו אלא סברת השואל. אבל דברי ריב"א יתורצו ע"פ מ"ש תוס' ורא"ש ריש
-נדרים גבי איבעיא דר"פ אי יש יד לקידושץ, דמטעם דקדושץן דומה לנדרים דאסר לה אכ"ע
-כהקדש, נמצא לא הו"מ למימר לאביי שאני נדרים דכתיב כי יפליא לרבות ידים שא"מ בנדרים,
-דעכ"פ בקידושין נכוי נימא הבי. וממילא בגיטין נמי דאיתקש יציאה להויה וסברא זו ג"כ הזכירו
-תוס' שם משו"ה הוצרך דבגט בעינן כריתות וליבא וע"כ בעי' מוכיח ולק"מ אריב"א וממילא נדחו
-דברי השואל...
-ובזה י"ל בקידושץ וי ע"א דקאמר ש"ס בקידושין אמר רחמנא כי יקח כו' והוא שפת יתר אינו ענץ
-לתי' הש"ס ולהנ"ל י"ל דהיה קשה להש"ס מאי וכן בגירושין דאמר שמואל דמשמע גירושין טפל
-לקידושין. ובשלמא אי מיירי דלא אמר לי וקמ"ל ידים שא"מ הויין ידים, והיינו דיליף קידושין
-מנדרין דדמי להקדש, א"כ קמ"ל תו וכן בגירושץ לא בעי' מוכיח. דהדר ילפי' יציאה מהוה. אבל
-השתא דמווקמינן דקאמר לי א"כ מאז וכן אדרבא בגיטץ יותר נוטה הסברא דבע מוכיח מדכתיב
-בריתות. ונילף קידושין מגיטץ. וא"כ מאי וכן. ומסיק אסיפא דבודאי בקידושץ שהבעל קונה שייד
-כי יקח ולא כי תקח דגלה לו קרא שהבעל קונה האשה ולא האשה את הבעל. אבל אכתי ס"ד לענין
-גירושין סגי בשמסלק כחו ממנה כמי שקנה שדה וחוזר ומפקירו, שאיננו אלא סילוק עצמו וסגי,
-וה"נ תסגי באיני בעליך קמ"ל וכן בגירושץ דנפקא מקרא אחריני ושלחה ולא שישלח עצמו:`,
+ואי ס"ד ידים שא"מ הוין ידים לך למה לי וע"ש...`,
         englishText: `Chasam Sofer on Nedarim 4b.
 Behold, regarding one who says "Behold you are betrothed" and does not say "to me" (Li): It is explained in Shulchan Aruch Siman 27 that strictly speaking there is no concern [it is valid], but the Rema added that there are those who are strict. 
 And the root of this law is in Kiddushin 5b, and Tosfos concluded there... that without "Li" it is not even a "Handle" (Yad), for a man is likely to betroth a woman for his friend just as for himself...
 And what the Pnei Yehoshua asked in the name of the Gaon Mahari Pollack z"l... according to the above [Tosfos' view], this is difficult: Behold, without "Li" it is not even a Handle! And yet the Gemara wanted to say she is betrothed.
 One can answer simply: In Tosfos' initial thought (Hava Amina), it was difficult for them that the Gemara should have answered: "You are betrothed" without "Li" implies a Handle for betrothing to himself MORE than implying he became an agent for others. For "A man does not leave himself and betroth a woman for his friend". And this logic was written by the Rivash...
 However, "Aha" implies Fasting just as much as Nazir, therefore it is not even a Handle. This was Tosfos' question [why differentiate?].
-And Tosfos answered: The Gemara holds that if you think "without Li" is called a Handle for the reason above... then so too "Aha" should imply Nazir more... Perforce, for this reason alone it does not become a Handle. 
+And Tosfos answered: The Gemara holds that if you think "without Li" is called a Handle for the reason above, then so too "Aha" should imply Nazir more... Perforce, for this reason alone it does not become a Handle. 
 And therefore, "without Li" is not even a Handle either. And the Gemara asks well. And with this we stand at the conclusion: "Aha" without a Nazir passing, and "Harei At Mekudeshes" without "Li" - both of them are not even a Handle [without context]. And the question of Mahari Pollack is resolved.
 
 And it is relieved for us there in the beginning of Nedarim where Shmuel establishes the Mishna according to Rabbi Yehuda... for if Ambiguous Handles are valid, why do I need "to you" (Lach)?
@@ -229,6 +192,11 @@ But now that we established he said "Li" [so it is explicit], then what is "So t
 And it concludes on the end clause: Certainly in Kiddushin where the husband acquires, "Ki Yikach" is relevant... But regarding Divorce, one might think it suffices to remove his power from her like one who buys a field and makes it Hefker... so "I am not your husband" should work. It teaches us "So too in Divorce", derived from "V'Shilcha" - he sends her, implies a formal act of sending, not just self-removal.`,
         concepts: ['c2'],
         children: []
+    },
+    analysis: {
+        focus: "Context is King",
+        chiddush: "Even omitting 'Li' might be valid if context exists, contradicting the need for a 'Yad'.",
+        reasoning: "The essence is the intent (Daas), not the formula. Context overrides technical flaws."
     }
 };
 
@@ -283,5 +251,10 @@ Therefore, perforce, the fact that in Kiddushin it is a doubt, is because perhap
 And from the words of the Drisha... regarding an Important Man... The Tur implies that even if the Important Man did not say anything, it works in Sale. Behold he considers the receipt by the Important Man as a "Giving" even without his speech. And if so, the reason we require his speech in Kiddushin is solely because of "Ki Tikach" (he must take, not be taken). And if so, it falls into the category of doubt of "He gave and She spoke". And this is clear.`,
         concepts: ['c2', 'c1'],
         children: []
+    },
+    analysis: {
+        focus: "Nature of the Doubt (Safek)",
+        chiddush: "The doubt is formal (Ki Yikach), not mental (Intent).",
+        reasoning: "We know he agreed to her terms! But because she initiated the speech, she looks like the 'Taker', violating the Scriptural decree."
     }
 };

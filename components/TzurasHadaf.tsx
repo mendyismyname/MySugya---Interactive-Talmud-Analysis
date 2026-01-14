@@ -322,8 +322,8 @@ export const TzurasHadaf: React.FC<Props> = ({ sugya, activeSource, activeSegmen
         {activeSource === 'MISHNA' && renderMishna()}
         {activeSource === 'GEMARA' && renderGemaraStructure()}
         
-        {/* NEW: Related Sugyas Section (Background Sources) */}
-        {sugya.relatedSources && sugya.relatedSources.length > 0 && (
+        {/* NEW: Related Sugyas Section (Background Sources) - Only on Gemara Page */}
+        {activeSource === 'GEMARA' && sugya.relatedSources && sugya.relatedSources.length > 0 && (
             <div className="border-t-4 border-stone-200 bg-stone-50 p-8">
                 <div className="max-w-4xl mx-auto">
                     <div className="flex items-center gap-3 mb-6 justify-center text-stone-500">

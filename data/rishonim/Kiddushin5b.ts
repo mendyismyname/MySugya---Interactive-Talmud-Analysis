@@ -56,6 +56,11 @@ However, if he was speaking with her about matters of her Get, and afterwards sa
 And the same law applies: Even if he was speaking with her about matters of her Get, and gave it to her silently and said nothing - if he did not perform a complete giving (Netina Gemura), it does not work... And this is what we learned in Gittin (78): "...if she found it behind him and read it and behold it is her Get, it is not a Get until he says to her 'It is your Get'." And we established it as a case where he moved it to her side... and that case refers to where he was speaking with her about matters of her Get...`,
         concepts: ['c2', 'c5'],
         children: []
+    },
+    analysis: {
+        focus: "Role of Speech vs Context",
+        chiddush: "Speech is not constitutive; it is clarificatory. If context clears it up, speech is unnecessary.",
+        reasoning: "Transactions (Mamon) depend on 'Daas' (Intent). Context proves Daas."
     }
 };
 
@@ -132,6 +137,11 @@ But any case where the words in his heart do not annul his actions but sustain t
         concepts: ['c1', 'c3'],
         linkedSourceId: 'source-terumot3-8', // Added
         children: []
+    },
+    analysis: {
+        focus: "Internal vs External Will",
+        chiddush: "Transactions require objective intent (manifested). 'Mistake' invalidates speech, but 'Reservation' doesn't invalidate an act.",
+        reasoning: "Social stability requires relying on actions/words, not hidden thoughts."
     }
 };
 
@@ -175,6 +185,11 @@ One can answer: A Get is different. Since there is an Act, which is the giving o
         concepts: ['c2', 'c3'],
         linkedSourceId: 'source-nedarim6b',
         children: []
+    },
+    analysis: {
+        focus: "Mechanism of Chalot (Status)",
+        chiddush: "Nedarim = Chalot Dibur. Kiddushin = Chalot Maaseh.",
+        reasoning: "If the mechanism differs, the rules of speech (Yad) may not transfer."
     }
 };
 
@@ -303,6 +318,11 @@ Halacha 2: One who betroths a woman and gave her betrothal money with her consen
 But if he gave it into her hand and said to her "And you" (Ve'at) [without 'also'], she who received the betrothal money is doubtfully betrothed (Safek Mekudeshes), lest he only intended to see what was in her heart, as if saying to her "And you, what do you say about this matter?", and therefore she accepted the Kiddushin [for the first woman] because he is still asking her to see what is in her heart. And because of this she is doubtfully betrothed.`,
         concepts: ['c2'],
         children: []
+    },
+    analysis: {
+        focus: "Ambiguity of 'And You'",
+        chiddush: "The phrase 'And You' is a doubt because it might be a question.",
+        reasoning: "It could mean 'And you also?' or 'And you, what do you say?'."
     }
 };
 
@@ -317,27 +337,27 @@ export const RAMBAM_OTHER: Perspective = {
         era: Era.RISHON,
         speaker: 'Rambam (Misc)',
         hebrewText: `רמב"ם הלכות אישות פרק ה הלכה כה
-האומר לאשה הרי את מקודשת לי בדינר זה על מנת שתחזירהו לי אינה מקודשת בין החזירה בין
+האומר לאשה הרי את מקודשת לי בדינר זה על מנת שתחזלריהו לי אינה מקודשת ב החזירה בין
 לא החזירה, שאם לא החזירתו הרי לא נתקיים התנאי, ואם החזירתו הרי לא נהנית ולא הגיע לידה
 כלום.
 
 רמב"ם הלכות ביכורים פרק יא הלכה ח
-רצה הכהן להחזיר לו הפדיון מחזיר, ולא יתן לו הוא ודעתו שיחזיר, ואם עשה כן והחזיר לו אין בנו
-פדוי עד שיגמור בלבו ליתן לו מתנה גמורה, ואם רצה הכהן אח"כ להחזיר יחזיר, וכן אם פירש ונתן
+רצה הכהן להחזיר לו הפדלון מחזל, ולא יתן לו הוא ודעתו שיחזיר, ואם עשה כן והחזיר לו אין בנו
+פדוי עד שיגמור בלבו ליתן לו מתנה גמורה, ואם רצה הכהן אח"כ להחז'ר יחזר, וכן אם פירש ונתו
 לו על מנת להחזיר הרי בנו פדוי.
 
 רמב"ם הלכות תרומות פרק יב הלכה יט
 נתן תרומה לכהן ע"מ להחזירה יצא ידי נתינה, ואסור לעשות כן מפני שנמצא במסייע בבית הגרנות,
 וכן אסור להן שיחטפו תרומות ומעשרות ואפילו לשאול חלקן בפיהן אסור אלא נוטלין בכבוד, שעל
-שלחן המקום הם אוכלים ועל שלחנו הם שותים ומתנות אלו לה' הם והוא זיכה להן שנאמר ואני
-נתתי לך את משמרת תרומותי.
+שלחן המקום הם אוכלץ ועל שלחנו הם שותים ומתנות אלו לה' הם והוא זיכה להן שנאמר ואני
+נתתי לך את משמרת תרוכוותי.
 
 רמב"ם הלכות עבדים פרק ה הלכה ג
-כיצד בשטר כותב לו על הנייר או על החרס הרי את בן חורין או הרי את של עצמך או אין לי עסק
+כיצד בשטר כותב לו על הנייר או על החרס הרי את בן חורין או הרי את של עצמך או אץ לי עסק
 בך וכן כל כיוצא בזה בענין זה שזה הוא גופו של גט שחרור ומוסר לו את השטר בפני שני עדים או
-שהיו העדים חתומים בו ומסרו לו בינו לבינו הרי זה יצא לחירות שהרי גיטו וידו באין כאחד, אמר
+שהיו העדים חתומים בו ומסרו לו בינו לבינו הרי זה יצא לחירות שהרי גיטו וידו באץ כאחד, אמר
 לו שלא בכתב הרי את בן חורין הרי את של עצמך אף על פי שהעידו עליו עדים בב"ד ואף על פי
-שקנו מידו עדיין לא נשתחרר שאין העבד יוצא לחירות אלא בכסף או בשטר או בראשי איברים,
+שקנו מידו עדיץ לא נשתחרר שאין העבד יוצא לחזרות אלא בכסף או בשטר או בראשי איברים,
 והכותב לשפחתו הרי את מותרת לכל אדם לא אמר כלום.`,
         englishText: `Ishus 5:25: One who says to a woman "Behold you are betrothed to me with this Dinar on condition that you return it to me" - she is not betrothed, whether she returns it or not. For if she does not return it, the condition is not fulfilled. And if she returns it, she has not benefited nor has anything come into her hand.
 
@@ -420,6 +440,11 @@ It teaches us (Ka Mashma Lan): Since a Nazir is passing before him, and his hear
 But if a Nazir was passing before him, even if he resolved in his heart and intended for Nezirut [but didn't say "Aha"], it is nothing, for it is Words in the Heart, since he did not express anything with his mouth that could be for Nezirut. For it is possible to doubt [it means] Fasting, and we require Mouth and Heart equal, and here there is only one [Heart]. (Rabbi Azriel z"l).`,
         concepts: ['c1'],
         children: []
+    },
+    analysis: {
+        focus: "Heart as Interpreter",
+        chiddush: "Heart can explain ambiguous words, but cannot contradict explicit ones.",
+        reasoning: "In the case of 'Aha', the heart fills in the blank. It doesn't uproot a word."
     }
 };
 
@@ -441,6 +466,11 @@ export const RAVED: Perspective = {
 Abraham (The Raavad) said: This matter is not clear. For the Acquisition [Kinyan Sudar/Chalipin] is like Money! From that story of the aristocracy (Kumat) [where they used a scarf]... the Halacha is like Rabbi Shimon that the money concludes the matter [and thus Chalipin should work for freeing a slave just like Money].`,
         concepts: [],
         children: []
+    },
+    analysis: {
+        focus: "Kinyan Equality",
+        chiddush: "Rejection of Rambam's distinction. Money concludes the matter, so equivalents should too.",
+        reasoning: "Derived from the scarf (Sudar) case."
     }
 };
 
@@ -490,6 +520,11 @@ And this resolves the case in the beginning of Nazir, because "Aha" is a weak ha
 Ri (Rabbi Yitzchak) distinguishes between "Bad Handles" (Yadayim Gruos) - like the case in Kiddushin where if he didn't say "Li" it is very bad because a man is likely to betroth a woman for his friend... and so too regarding "Aha" in Nazir... these are "Bad Handles" and not valid. But "Important Handles" (Yadayim Chashuvot) he holds are valid.`,
         concepts: ['c2'],
         children: []
+    },
+    analysis: {
+        focus: "Quality of Handles",
+        chiddush: "Not all Handles are equal. 'Bad Handles' (omitting Li) are invalid.",
+        reasoning: "Since betrothing for a friend is possible, omitting 'Li' creates too much ambiguity."
     }
 };
 
@@ -552,5 +587,10 @@ Tosfos answered: Here it refers to a case where they were not speaking about bet
 But where they were discussing the matter [Asukin], since he himself agreed to them originally, it is as if he explained now at the time of giving, for he relies on his own previous speech and gives.`,
         concepts: ['c2', 'c3'],
         children: []
+    },
+    analysis: {
+        focus: "Proof of Intent",
+        chiddush: "'He gave, She spoke' is doubtful because we lack proof of his specific intent.",
+        reasoning: "He might be giving it as a gift to avoid conflict, not agreeing to her terms."
     }
 };
