@@ -1,182 +1,206 @@
+
 import React, { useState } from 'react';
-import { Perspective, LogicNode } from '../types';
-import { Languages, BookOpen, Quote, ChevronLeft, ChevronRight, MessageSquare } from 'lucide-react';
+import { Perspective, LogicNode, GuideStep } from '../types';
+import { Languages, BookOpen, ChevronLeft, ChevronRight, MessageSquare, Columns, Maximize2, Link2 } from 'lucide-react';
+import { TextRenderer } from './TextRenderer';
+import { InlineGuideNavigator } from './InlineGuideNavigator';
 
 interface Props {
   perspective: Perspective;
   sourceText: LogicNode;
   category: 'RISHONIM' | 'ACHRONIM';
+  relatedSources?: LogicNode[]; // List of all related sugyas
   onNavigate: (direction: 'next' | 'prev') => void;
+  // For Inline Navigation
+  guide?: GuideStep[];
+  activeGuideStepId?: string | null;
+  onGuideNext?: (step: GuideStep) => void;
 }
 
-export const ScholarDepthView: React.FC<Props> = ({ perspective, category, onNavigate }) => {
+export const ScholarDepthView: React.FC<Props> = ({ 
+    perspective, 
+    category, 
+    relatedSources, 
+    onNavigate,
+    guide,
+    activeGuideStepId,
+    onGuideNext
+}) => {
   const [showEnglish, setShowEnglish] = useState(false);
+
+  // 1. Find Connected Source
+  const linkedSource = perspective.rootNode.linkedSourceId && relatedSources 
+      ? relatedSources.find(s => s.id === perspective.rootNode.linkedSourceId)
+      : null;
+
+  // 2. Find Next Step in Guide
+  let nextStep: GuideStep | undefined;
+  if (guide && activeGuideStepId) {
+      const currentIndex = guide.findIndex(s => s.id === activeGuideStepId);
+      if (currentIndex !== -1 && currentIndex < guide.length - 1) {
+          nextStep = guide[currentIndex + 1];
+      }
+  }
 
   if (!perspective) {
       return (
-          <div className="h-full flex flex-col items-center justify-center bg-[#fdfbf7] text-stone-500">
+          <div className="min-h-[500px] flex flex-col items-center justify-center bg-[#fdfbf7] text-stone-500">
               <div className="animate-pulse">Select a scholar from the sidebar</div>
           </div>
       );
   }
 
   return (
-    <div className="h-full flex flex-col items-center bg-[#fdfbf7] overflow-y-auto overflow-x-hidden p-4 md:p-8 pb-20 lg:pb-8">
+    <div className="flex flex-col items-center bg-[#fdfbf7] w-full p-4 md:p-8 min-h-full">
       
-      {/* Navigation Buttons (Absolute) - Visible on Desktop */}
-      <button 
-        onClick={() => onNavigate('prev')}
-        className="fixed left-4 lg:left-80 top-1/2 -translate-y-1/2 p-3 bg-white/80 border border-stone-200 shadow-md rounded-full text-stone-500 hover:text-stone-900 hover:bg-white transition-all z-20 print:hidden hidden lg:block"
-        title="Previous Perspective"
+      {/* Container Card */}
+      <div className={`
+          bg-white shadow-2xl border border-stone-200 relative mb-12 transition-all duration-500 ease-in-out h-fit
+          ${showEnglish ? 'w-full max-w-[1600px]' : 'w-full max-w-[900px]'}
+      `}
       >
-          <ChevronLeft size={24} />
-      </button>
-      <button 
-        onClick={() => onNavigate('next')}
-        className="fixed right-4 top-1/2 -translate-y-1/2 p-3 bg-white/80 border border-stone-200 shadow-md rounded-full text-stone-500 hover:text-stone-900 hover:bg-white transition-all z-20 print:hidden hidden lg:block"
-        title="Next Perspective"
-      >
-          <ChevronRight size={24} />
-      </button>
-
-      {/* Vilna Page Container */}
-      <div className="w-full max-w-4xl bg-white shadow-2xl border border-stone-200 relative min-h-[1000px]">
         
         {/* Paper Texture */}
-        <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/cream-paper.png')] pointer-events-none"></div>
+        <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/cream-paper.png')] pointer-events-none h-full w-full"></div>
 
-        {/* Header - Tzuras Hadaf Style */}
-        <div className="pt-8 pb-4 px-6 md:px-12 border-b-2 border-stone-800 border-double mx-4 md:mx-8 flex flex-col md:flex-row items-center md:items-end justify-between relative z-10 gap-4">
+        {/* Header */}
+        <div className="pt-10 pb-6 px-6 md:px-12 border-b-2 border-stone-800 border-double mx-4 md:mx-12 flex flex-col items-center relative z-10">
             
-            {/* Mobile Nav Header */}
-            <div className="w-full flex justify-between items-center md:hidden mb-2">
-                <button onClick={() => onNavigate('prev')}><ChevronLeft size={20}/></button>
-                <div className="font-hebrew-serif text-lg font-bold text-stone-900">{category === 'RISHONIM' ? 'חידושי ראשונים' : 'אוצר אחרונים'}</div>
-                <button onClick={() => onNavigate('next')}><ChevronRight size={20}/></button>
-            </div>
-
-            {/* Right: Category/Siman (Hidden on mobile as it's in nav header) */}
-            <div className="w-1/4 text-right hidden md:block">
-                 <div className="font-hebrew-serif text-lg font-bold text-stone-900">
+            <div className="flex items-center gap-3 text-stone-400 mb-2">
+                <button onClick={() => onNavigate('prev')} className="hover:text-stone-800 transition-colors p-1"><ChevronLeft size={18} /></button>
+                <div className="font-hebrew-serif text-lg font-bold text-stone-500 uppercase tracking-widest">
                     {category === 'RISHONIM' ? 'חידושי ראשונים' : 'אוצר אחרונים'}
-                 </div>
-                 <div className="font-hebrew-serif text-sm text-stone-600 mt-1">קידושין ו׳:</div>
+                </div>
+                <button onClick={() => onNavigate('next')} className="hover:text-stone-800 transition-colors p-1"><ChevronRight size={18} /></button>
             </div>
 
-            {/* Center: Scholar Name */}
-            <div className="w-full md:w-1/2 text-center">
-                 <div className="font-hebrew-serif text-4xl md:text-5xl font-black text-stone-900 leading-[0.8] tracking-tight">
-                    {perspective.scholarNameHebrew || perspective.scholarName}
-                 </div>
+            <div className="font-hebrew-serif text-4xl md:text-6xl font-black text-stone-900 leading-[1.1] tracking-tight text-center mb-6 drop-shadow-sm">
+                {perspective.scholarNameHebrew || perspective.scholarName}
             </div>
 
-            {/* Left: Tools */}
-            <div className="w-full md:w-1/4 text-center md:text-left flex justify-center md:justify-end">
+            {/* Description/Source Ref */}
+            <div className="text-stone-600 font-serif italic mb-6 text-sm bg-stone-50 px-4 py-1 rounded-full border border-stone-200">
+                {perspective.description}
+            </div>
+
+            {/* Controls */}
+            <div className="flex items-center gap-4">
                  <button 
                     onClick={() => setShowEnglish(!showEnglish)}
-                    className={`flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase tracking-wider border rounded transition-all ${showEnglish ? 'bg-stone-800 text-white border-stone-800' : 'bg-white text-stone-500 border-stone-300 hover:bg-stone-50'}`}
+                    className={`
+                        flex items-center gap-2 px-5 py-2 text-xs font-bold uppercase tracking-wider border rounded-full transition-all shadow-sm
+                        ${showEnglish 
+                            ? 'bg-stone-900 text-white border-stone-900 hover:bg-stone-700' 
+                            : 'bg-white text-stone-600 border-stone-300 hover:bg-stone-50 hover:border-stone-400'}
+                    `}
                  >
-                    <Languages size={14} />
-                    English
+                    {showEnglish ? <Maximize2 size={14} /> : <Columns size={14} />}
+                    {showEnglish ? 'Focus View' : 'Split View'}
                  </button>
             </div>
         </div>
 
-        {/* Main Content Area - Grid Layout */}
+        {/* Content Area */}
         <div className="p-6 md:p-12 relative z-10">
             
-            {/* Main Hebrew Text Block */}
-            <div className="mb-8" dir="rtl">
-                <div className="text-justify font-hebrew-serif text-xl md:text-2xl leading-[1.6] text-stone-900">
-                     {/* Split logic to bold the Dh (Dibbur Hamatchil) */}
-                     {perspective.rootNode.hebrewText.split(' ').map((word, i) => {
-                         // Simple heuristic: Bold first 3 words
-                         return <span key={i} className={i < 3 ? "font-black" : ""}>{word} </span>
-                     })}
-                </div>
-            </div>
-
-            {/* Inline English Translation (Toggled) */}
-            {showEnglish && (
-                <div className="mb-10 bg-stone-50 p-6 border-l-4 border-stone-300 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <h4 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-stone-400 mb-2">
-                        <BookOpen size={14} /> Translation
-                    </h4>
-                    <p className="font-serif text-stone-800 text-lg leading-relaxed">
-                        {perspective.rootNode.englishText}
-                    </p>
+            {/* LINKED SOURCE DISPLAY (If available) */}
+            {linkedSource && (
+                <div className="mb-10 bg-amber-50/50 border border-amber-200 rounded-xl overflow-hidden shadow-sm animate-in fade-in slide-in-from-top-4">
+                    <div className="bg-amber-100/50 px-4 py-2 border-b border-amber-200 flex items-center gap-2">
+                        <Link2 size={16} className="text-amber-700" />
+                        <span className="text-xs font-bold text-amber-800 uppercase tracking-widest">Related Source: {linkedSource.speaker}</span>
+                    </div>
+                    <div className="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="font-hebrew text-lg leading-relaxed text-stone-800 text-right" dir="rtl">
+                            {linkedSource.hebrewText}
+                        </div>
+                        <div className="font-serif text-sm leading-relaxed text-stone-600 italic border-t md:border-t-0 md:border-l border-amber-200 pt-4 md:pt-0 md:pl-6">
+                            {linkedSource.englishText}
+                        </div>
+                    </div>
                 </div>
             )}
 
-            {/* Separator */}
-            <div className="flex justify-center mb-10 opacity-30">
-                <div className="w-16 h-px bg-stone-800"></div>
-                <div className="mx-4 text-stone-800">♦</div>
-                <div className="w-16 h-px bg-stone-800"></div>
-            </div>
-
-            {/* Analysis Columns (Biurim) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8" dir="rtl">
+            <div className={`grid gap-12 ${showEnglish ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
                 
-                {/* Right Column: Explanation */}
-                <div>
-                     <div className="font-hebrew-serif font-bold text-lg text-stone-900 border-b border-stone-300 pb-2 mb-4">
-                        ביאור העניין
-                     </div>
-                     <div className="space-y-4">
-                        <div>
-                            <span className="font-bold text-sm text-stone-500 block mb-1">נושא (Topic):</span>
-                            <p className="font-serif text-stone-800 text-sm leading-relaxed">{perspective.analysis?.focus}</p>
-                        </div>
-                        <div className="bg-[#fcfaf5] p-3 rounded border border-stone-100">
-                            <span className="font-bold text-sm text-stone-500 block mb-1">חידוש (Novel Idea):</span>
-                            <p className="font-serif text-stone-900 font-medium text-sm leading-relaxed">{perspective.analysis?.chiddush}</p>
-                        </div>
-                     </div>
+                {/* Right Column: Hebrew (Always visible, always Right in grid) */}
+                <div className={`${showEnglish ? 'lg:order-2 border-l-0 lg:border-l border-stone-200 lg:pl-12' : ''}`}>
+                    <div className="mb-4 flex items-center justify-end gap-2 opacity-50">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Original Text</span>
+                        <BookOpen size={14} />
+                    </div>
+                    <TextRenderer 
+                        text={perspective.rootNode.hebrewText} 
+                        isHebrew={true}
+                    />
                 </div>
 
-                {/* Left Column: Logic/Reasoning (Notes) */}
-                <div>
-                     <div className="font-hebrew-serif font-bold text-lg text-stone-900 border-b border-stone-300 pb-2 mb-4">
-                        הערות וסברות
-                     </div>
-                     <div className="space-y-4">
-                        <div className="relative pl-6 md:pl-0 md:pr-6">
-                            <Quote className="absolute top-0 right-0 text-stone-200 transform scale-x-[-1]" size={32} />
-                            <p className="font-serif text-stone-800 text-sm leading-relaxed italic relative z-10">
-                                "{perspective.analysis?.reasoning}"
-                            </p>
+                {/* Left Column: English (Visible only if toggled) */}
+                {showEnglish && (
+                    <div className="lg:order-1 lg:pr-6 animate-in slide-in-from-left-4 fade-in duration-500">
+                        <div className="mb-4 flex items-center gap-2 opacity-50">
+                            <Languages size={14} />
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Translation</span>
                         </div>
-                        
-                        {/* Discussion/Notes */}
-                        {perspective.analysis?.dispute && (
-                            <div className="mt-4 pt-4 border-t border-stone-200 border-dashed">
-                                <span className="font-bold text-xs text-stone-400 block mb-1 uppercase tracking-widest flex items-center gap-1">
-                                    <MessageSquare size={12} /> Discussion
-                                </span>
-                                <p className="font-serif text-stone-600 text-xs leading-relaxed">{perspective.analysis.dispute}</p>
-                            </div>
-                        )}
-                        
-                        {/* Additional Notes if present on rootNode */}
-                        {perspective.rootNode.notes && (
-                            <div className="mt-4 bg-stone-50 p-3 rounded border border-stone-100">
-                                <span className="font-bold text-xs text-stone-400 block mb-1 uppercase tracking-widest">Additional Notes</span>
-                                <p className="font-serif text-stone-600 text-xs leading-relaxed">{perspective.rootNode.notes}</p>
-                            </div>
-                        )}
-                     </div>
-                </div>
+                        <div className="bg-[#fcfaf5] p-6 md:p-8 rounded-lg border border-stone-200 shadow-inner h-full">
+                            <TextRenderer 
+                                text={perspective.rootNode.englishText} 
+                                isHebrew={false}
+                            />
+                        </div>
+                    </div>
+                )}
 
             </div>
+
+            {/* Analysis Box (Full Width at bottom) */}
+            {perspective.analysis && (
+                <div className="mt-16 pt-10 border-t border-stone-200">
+                    <div className="bg-stone-50 border border-stone-200 p-8 rounded-xl shadow-sm relative overflow-hidden" dir="rtl">
+                        <div className="absolute top-0 right-0 w-2 h-full bg-stone-800"></div>
+                        <div className="font-hebrew-serif font-bold text-2xl text-stone-900 mb-6 flex items-center gap-3">
+                            <MessageSquare size={24} className="text-stone-400" />
+                            ביאור העניין
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <div className="space-y-2">
+                                <span className="text-xs font-bold text-stone-400 uppercase tracking-widest block font-sans">נושא (Topic)</span>
+                                <p className="font-hebrew-serif text-stone-800 text-lg leading-relaxed font-bold">{perspective.analysis.focus}</p>
+                            </div>
+                            <div className="space-y-2">
+                                <span className="text-xs font-bold text-stone-400 uppercase tracking-widest block font-sans">חידוש (Novel Idea)</span>
+                                <p className="font-hebrew-serif text-stone-800 text-lg leading-relaxed bg-white p-3 rounded border border-stone-200 shadow-sm">
+                                    {perspective.analysis.chiddush}
+                                </p>
+                            </div>
+                            <div className="space-y-2">
+                                <span className="text-xs font-bold text-stone-400 uppercase tracking-widest block font-sans">סברה (Reasoning)</span>
+                                <p className="font-hebrew-serif text-stone-700 text-lg leading-relaxed italic">
+                                    "{perspective.analysis.reasoning}"
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
 
         {/* Footer */}
-        <div className="absolute bottom-4 left-0 right-0 text-center">
-             <div className="text-[10px] text-stone-400 font-hebrew-serif">מהדורת סוגיא דיפ • {perspective.scholarName}</div>
+        <div className="pb-8 text-center border-t border-stone-100 pt-4">
+             <div className="text-[10px] text-stone-300 font-sans tracking-[0.2em] uppercase">MySugya • Vilna Edition</div>
         </div>
 
       </div>
+
+      {/* INLINE NAVIGATOR (Outside the card to be distinct) */}
+      {nextStep && onGuideNext && (
+          <InlineGuideNavigator 
+              currentAnalysis={perspective.analysis}
+              nextStep={nextStep}
+              onNext={() => onGuideNext(nextStep!)}
+          />
+      )}
+
     </div>
   );
 };

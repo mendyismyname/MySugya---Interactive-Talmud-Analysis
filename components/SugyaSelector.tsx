@@ -106,23 +106,47 @@ export const SugyaSelector: React.FC<Props> = ({ onSelect }) => {
 
   const renderSedarim = () => (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {SEDARIM.map(seder => (
-              <div 
-                  key={seder.id}
-                  onClick={() => setSelectedSeder(seder.id)}
-                  className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-lg cursor-pointer transition-all hover:-translate-y-1 group relative overflow-hidden"
-              >
-                  <div className="absolute top-0 left-0 w-2 h-full bg-slate-200 group-hover:bg-indigo-600 transition-colors"></div>
-                  <div className="flex justify-between items-start mb-4 pl-4">
-                      <div className="font-hebrew text-3xl font-bold text-slate-800">{seder.hebrew}</div>
-                      <BookOpen className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
+          {SEDARIM.map(seder => {
+              // Check if any mesechta in this seder has content
+              const sederMesechtos = MESECHTOS[seder.id] || [];
+              const isEnabled = sederMesechtos.some(m => 
+                  AVAILABLE_SUGYAS.some(s => s.masechta === m && s.hasContent)
+              );
+
+              return (
+                  <div 
+                      key={seder.id}
+                      onClick={isEnabled ? () => setSelectedSeder(seder.id) : undefined}
+                      className={`
+                          p-6 rounded-xl border shadow-sm transition-all group relative overflow-hidden flex flex-col
+                          ${isEnabled 
+                              ? 'bg-white border-slate-200 hover:shadow-lg hover:-translate-y-1 cursor-pointer' 
+                              : 'bg-slate-50 border-slate-100 cursor-not-allowed opacity-70'}
+                      `}
+                  >
+                      {isEnabled && <div className="absolute top-0 left-0 w-2 h-full bg-slate-200 group-hover:bg-indigo-600 transition-colors"></div>}
+                      
+                      <div className={`flex justify-between items-start mb-4 ${isEnabled ? 'pl-4' : ''}`}>
+                          <div className="font-hebrew text-3xl font-bold text-slate-800">{seder.hebrew}</div>
+                          {isEnabled ? (
+                              <BookOpen className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
+                          ) : (
+                              <Lock size={18} className="text-slate-300" />
+                          )}
+                      </div>
+                      <div className={isEnabled ? 'pl-4' : ''}>
+                        <h3 className="text-xl font-bold text-slate-900">{seder.english}</h3>
+                        <p className="text-slate-500 text-sm mt-1">{seder.description}</p>
+                        
+                        {!isEnabled && (
+                            <div className="mt-3 inline-block px-2 py-1 bg-slate-200/50 rounded text-[10px] font-bold uppercase text-slate-500 tracking-wider">
+                                Coming Soon
+                            </div>
+                        )}
+                      </div>
                   </div>
-                  <div className="pl-4">
-                    <h3 className="text-xl font-bold text-slate-900">{seder.english}</h3>
-                    <p className="text-slate-500 text-sm mt-1">{seder.description}</p>
-                  </div>
-              </div>
-          ))}
+              );
+          })}
       </div>
   );
 
@@ -135,15 +159,29 @@ export const SugyaSelector: React.FC<Props> = ({ onSelect }) => {
               </button>
               <h2 className="text-2xl font-bold text-slate-800 mb-6 text-center">Select Mesechta</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {list.map(m => (
-                      <div 
-                          key={m}
-                          onClick={() => setSelectedMesechta(m)}
-                          className="bg-white p-4 rounded-lg border border-slate-200 hover:border-indigo-500 hover:shadow-md cursor-pointer transition-all text-center"
-                      >
-                          <div className="font-bold text-lg text-slate-800">{m}</div>
-                      </div>
-                  ))}
+                  {list.map(m => {
+                      // Check if this specific mesechta has content
+                      const isEnabled = AVAILABLE_SUGYAS.some(s => s.masechta === m && s.hasContent);
+                      return (
+                          <div 
+                              key={m}
+                              onClick={isEnabled ? () => setSelectedMesechta(m) : undefined}
+                              className={`
+                                p-4 rounded-lg border transition-all text-center relative overflow-hidden
+                                ${isEnabled 
+                                    ? 'bg-white border-slate-200 hover:border-indigo-500 hover:shadow-md cursor-pointer' 
+                                    : 'bg-slate-50 border-slate-100 cursor-not-allowed opacity-60'}
+                              `}
+                          >
+                              <div className="font-bold text-lg text-slate-800">{m}</div>
+                              {!isEnabled && (
+                                  <div className="text-[10px] uppercase font-bold text-slate-400 mt-1 bg-slate-100 inline-block px-2 rounded">
+                                      Coming Soon
+                                  </div>
+                              )}
+                          </div>
+                      );
+                  })}
                   {list.length === 0 && (
                       <div className="col-span-full text-center text-slate-400 py-10 italic">No Mesechtos available in this mock version.</div>
                   )}
@@ -197,7 +235,7 @@ export const SugyaSelector: React.FC<Props> = ({ onSelect }) => {
                        <div className="col-span-full text-center py-12 bg-slate-50 rounded-xl border border-dashed border-slate-300">
                            <BookOpen size={48} className="text-slate-300 mx-auto mb-4" />
                            <p className="text-slate-500 font-bold">No Sugyas currently available for this Mesechta.</p>
-                           <p className="text-slate-400 text-sm mt-1">Try Bava Metzia (2a) for a full demo.</p>
+                           <p className="text-slate-400 text-sm mt-1">Try Kiddushin for a full demo.</p>
                        </div>
                   )}
               </div>
@@ -363,11 +401,12 @@ export const SugyaSelector: React.FC<Props> = ({ onSelect }) => {
                             Lomdus (Mishna/Gemara)
                         </button>
                         <button 
-                            onClick={() => handleModeChange('HALACHA')}
-                            className={`flex items-center gap-2 px-6 py-2 rounded-full font-bold text-sm transition-all ${mode === 'HALACHA' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}
+                            // Disable Halacha Mode
+                            disabled
+                            className={`flex items-center gap-2 px-6 py-2 rounded-full font-bold text-sm transition-all bg-slate-100 text-slate-400 cursor-not-allowed`}
                         >
                             <Scale size={16} />
-                            Halacha (Shulchan Aruch)
+                            Halacha (Coming Soon)
                         </button>
                     </div>
                 </div>

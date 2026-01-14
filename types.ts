@@ -21,14 +21,14 @@ export enum Era {
 }
 
 export enum StudyStage {
-  SELECTOR = 'SELECTOR',       // New: Library/Selection Screen
-  INTRO = 'INTRO',             // Shear Blat / Title Page
-  SOURCE_TEXT = 'SOURCE_TEXT', // Mishna & Gemara (Tzuras Hadaf)
-  ANALYSIS = 'ANALYSIS',       // Case, Law, Factor extraction
-  LOGIC_SYSTEM = 'LOGIC_SYSTEM', // Ramchal Methodology Tools
+  SELECTOR = 'SELECTOR',
+  INTRO = 'INTRO',
+  SOURCE_TEXT = 'SOURCE_TEXT',
+  ANALYSIS = 'ANALYSIS',
+  LOGIC_SYSTEM = 'LOGIC_SYSTEM',
   DEPTH_RISHONIM = 'DEPTH_RISHONIM',
   DEPTH_ACHRONIM = 'DEPTH_ACHRONIM',
-  PSAK = 'PSAK'                // Practical Law
+  PSAK = 'PSAK'
 }
 
 export interface Concept {
@@ -50,25 +50,25 @@ export interface LogicNode {
   era: Era;
   hebrewText: string;
   englishText: string;
-  concepts: string[]; // IDs of concepts
+  concepts: string[];
   children: LogicNode[];
   isExpanded?: boolean;
   notes?: string;
   parentId?: string;
+  linkedSourceId?: string;
 }
 
 export interface Perspective {
   id: string;
-  scholarName: string; // e.g., "Rashi", "Tosfos", "Rambam"
-  scholarNameHebrew?: string; // e.g. "רש״י"
+  scholarName: string;
+  scholarNameHebrew?: string;
   description: string;
-  rootNode: LogicNode; // The logic tree according to this scholar
-  // New deep analysis fields
+  rootNode: LogicNode;
   analysis?: {
-      focus: string; // What part of the source they focus on
-      chiddush: string; // What they add
-      reasoning: string; // The "Svara"
-      dispute?: string; // Who they are arguing with
+      focus: string;
+      chiddush: string;
+      reasoning: string;
+      dispute?: string;
   }
 }
 
@@ -77,22 +77,21 @@ export interface AnalysisComponent {
   category: 'CASE' | 'LAW' | 'FACTOR' | 'SOURCE';
   title: string;
   description: string;
-  refId: string; // ID of the LogicNode this refers to
+  refId: string;
 }
 
 export interface PsakEntry {
   id: string;
-  authority: string; // e.g. Shulchan Aruch
+  authority: string;
   text: string;
   ruling: string;
   citation: string;
-  basedOn: string[]; // IDs of previous opinions/nodes
+  basedOn: string[];
 }
 
-// Logic System Types (Ramchal)
 export interface LogicStatement {
   text: string;
-  type: string; // e.g., "Meimra", "Kushya"
+  type: string;
   color: string;
   analysis: {
     subject: string;
@@ -120,11 +119,11 @@ export interface ModernApplication {
     parallels: string;
     ruling: string;
     deepAnalysis?: {
-        yesod: string; // The fundamental conceptual link
+        yesod: string;
         perspectives: {
-            authority: string; // e.g. "According to Rashba"
-            logic: string; // How their specific logic applies here
-            outcome: string; // The specific ruling for this case
+            authority: string;
+            logic: string;
+            outcome: string;
         }[];
     };
 }
@@ -147,7 +146,7 @@ export interface ShulchanAruchData {
 }
 
 export interface ChumashData {
-    sourceRef: string; // e.g. "Devarim 24:1"
+    sourceRef: string;
     text: string;
     translation: string;
     rashi: { id: string, text: string, translation?: string }[];
@@ -166,26 +165,51 @@ export interface Commentary {
     scholar: string;
     hebrewText: string;
     englishText: string;
+    linkedSourceId?: string;
+}
+
+export interface DafSegment {
+    id: string;
+    gemaraText: { hebrew: string; english: string; };
+    rashi: Commentary[];
+    tosfos: Commentary[];
+}
+
+export interface GuideStep {
+    id: string;
+    title: string;
+    description: string;
+    stage: StudyStage;
+    targetId?: string;
+    // Expanded Pedagogical Fields
+    deepDive?: string; // The "Teacher's Explanation"
+    keyTerms?: string[]; // e.g. "Yad", "Dvarim Shebalev"
+    nuance?: string; // Subtle point to notice
 }
 
 export interface SugyaSection {
   id: string;
   title: string;
-  sourceRef: string; // e.g., "Bava Metzia 2a"
+  sourceRef: string;
   
-  // Sources
+  guide?: GuideStep[];
+
   chumashText?: ChumashData;
   mishnaContext?: {
       previous?: MishnaContextText;
+      current?: MishnaContextText; // Added Current
       next?: MishnaContextText;
       bartenura?: Commentary[];
   };
-  baseText: LogicNode; // The Mishna
-  gemaraText?: LogicNode; // The Gemara
-  secondaryGemaraText?: LogicNode; // Optional 2nd source
+  baseText: LogicNode;
+  gemaraText?: LogicNode;
+  dafStructure?: DafSegment[];
+  
+  secondaryGemaraText?: LogicNode;
+  relatedSources?: LogicNode[];
 
-  perspectives: Perspective[]; // Rishonim
-  achronimPerspectives: Perspective[]; // Achronim
+  perspectives: Perspective[];
+  achronimPerspectives: Perspective[];
   analysis: AnalysisComponent[];
   psakChain: PsakEntry[];
   shulchanAruch: ShulchanAruchData;
@@ -193,7 +217,6 @@ export interface SugyaSection {
   modernAnalysis: ModernApplication[];
   visualFlow: VisualFlowStep[];
   
-  // External Resources
   resources?: {
       videoUrl?: string;
       pdfUrl?: string;

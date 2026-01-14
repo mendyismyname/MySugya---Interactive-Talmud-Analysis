@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { MOCK_SUGYA, INITIAL_CONCEPTS, AVAILABLE_SUGYAS } from './constants';
 import { LogicNodeCard } from './components/LogicNodeCard';
@@ -9,11 +10,12 @@ import { ShearBlat } from './components/ShearBlat';
 import { TzurasHadaf } from './components/TzurasHadaf';
 import { ScholarDepthView } from './components/ScholarDepthView';
 import { SugyaSelector } from './components/SugyaSelector';
-import { LogicNode, Concept, StudyStage } from './types';
+import { SugyaNavigator } from './components/SugyaNavigator'; // NEW
+import { LogicNode, Concept, StudyStage, GuideStep } from './types';
 import { 
     BookOpen, Settings, BrainCircuit, X, ChevronRight, Layers, Book, 
     SidebarClose, SidebarOpen, ZoomIn, Map, Home, Lightbulb, ListTree, GripHorizontal,
-    ChevronDown, Search, Gavel, FileText, Network, Sparkles, Workflow, ExternalLink, Video, GitFork, Menu
+    ChevronDown, Search, Gavel, FileText, Network, Sparkles, Workflow, ExternalLink, Video, GitFork, Menu, PanelRightClose, PanelRightOpen
 } from 'lucide-react';
 import { explainConcept, generateComparison, generateSugyaDeepData } from './services/geminiService';
 
@@ -26,7 +28,11 @@ const App: React.FC = () => {
   // Navigation State
   const [activePerspectiveId, setActivePerspectiveId] = useState<string | null>(null);
   const [activeSource, setActiveSource] = useState<'CHUMASH' | 'MISHNA' | 'GEMARA'>('CHUMASH');
+  const [activeSegmentId, setActiveSegmentId] = useState<string | null>(null); // NEW: Track specific Gemara segment
   const [analysisSection, setAnalysisSection] = useState<'STRUCTURE' | 'LOGIC' | 'MELITZA'>('STRUCTURE');
+  
+  // Guide State - explicitly track which step we are on to allow stepping through same-view content (e.g. Gemara flow)
+  const [activeGuideStepId, setActiveGuideStepId] = useState<string | null>(null);
 
   // Data State
   const [concepts, setConcepts] = useState<Concept[]>(INITIAL_CONCEPTS);
@@ -36,6 +42,7 @@ const App: React.FC = () => {
   const [expandedConceptId, setExpandedConceptId] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<LogicNode | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1024);
+  const [isNavigatorOpen, setIsNavigatorOpen] = useState(true);
   const [sidebarTab, setSidebarTab] = useState<'OUTLINE' | 'CONCEPTS'>('OUTLINE');
   
   // Resize State
@@ -57,6 +64,9 @@ const App: React.FC = () => {
           setSelectedNode(null);
           setActivePerspectiveId(null);
           setActiveSource('CHUMASH'); // Start with Chumash by default
+          setActiveSegmentId(null);
+          // Reset guide to start
+          setActiveGuideStepId(selected.data.guide?.[0]?.id || null);
           setIsSidebarOpen(true); // Automatically open menu on selection
       }
   };
@@ -97,18 +107,36 @@ const App: React.FC = () => {
   const handleScholarSelect = (stage: StudyStage, id: string) => {
       setCurrentStage(stage);
       setActivePerspectiveId(id);
+      
+      // Sync Guide
+      const step = currentSugya.guide?.find(s => s.targetId === id && s.stage === stage);
+      if (step) setActiveGuideStepId(step.id);
+
       if (window.innerWidth < 1024) setIsSidebarOpen(false);
   };
   
   const handleSourceSelect = (source: 'CHUMASH' | 'MISHNA' | 'GEMARA') => {
       setCurrentStage(StudyStage.SOURCE_TEXT);
       setActiveSource(source);
+      setActiveSegmentId(null); // Reset segment on broad source change
+
+      // Sync Guide (Find first step for this source to avoid jumping into middle)
+      const step = currentSugya.guide?.find(s => s.stage === StudyStage.SOURCE_TEXT && s.targetId === source);
+      if (step) setActiveGuideStepId(step.id);
+
       if (window.innerWidth < 1024) setIsSidebarOpen(false);
   }
 
   const handleAnalysisSelect = (section: 'STRUCTURE' | 'LOGIC' | 'MELITZA') => {
       setCurrentStage(StudyStage.ANALYSIS);
       setAnalysisSection(section);
+      if (window.innerWidth < 1024) setIsSidebarOpen(false);
+  }
+
+  const handleIntroSelect = () => {
+      setCurrentStage(StudyStage.INTRO);
+      const step = currentSugya.guide?.find(s => s.stage === StudyStage.INTRO);
+      if (step) setActiveGuideStepId(step.id);
       if (window.innerWidth < 1024) setIsSidebarOpen(false);
   }
 
@@ -120,15 +148,69 @@ const App: React.FC = () => {
       const currentIndex = list.findIndex(p => p.id === activePerspectiveId);
       if (currentIndex === -1 && list.length > 0) {
           setActivePerspectiveId(list[0].id);
+          // Try to sync guide
+          const step = currentSugya.guide?.find(s => s.targetId === list[0].id && s.stage === currentStage);
+          if (step) setActiveGuideStepId(step.id);
           return;
       }
 
       const newIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
       
       if (newIndex >= 0 && newIndex < list.length) {
-          setActivePerspectiveId(list[newIndex].id);
+          const newId = list[newIndex].id;
+          setActivePerspectiveId(newId);
+          // Sync Guide
+          const step = currentSugya.guide?.find(s => s.targetId === newId && s.stage === currentStage);
+          if (step) setActiveGuideStepId(step.id);
       }
   };
+
+  const handleGuideNavigation = (step: GuideStep) => {
+      // 1. Set explicit step ID
+      setActiveGuideStepId(step.id);
+
+      // 2. Set Stage
+      setCurrentStage(step.stage);
+      
+      // 3. Handle Source Selection (Special targets for Source Stage)
+      if (step.stage === StudyStage.SOURCE_TEXT) {
+          if (step.targetId === 'CHUMASH') {
+              setActiveSource('CHUMASH');
+              setActiveSegmentId(null);
+          }
+          else if (step.targetId === 'MISHNA') {
+              setActiveSource('MISHNA');
+              setActiveSegmentId(null);
+          }
+          else if (step.targetId === 'GEMARA') {
+              setActiveSource('GEMARA');
+              setActiveSegmentId(null);
+          }
+          else if (step.targetId && step.targetId.includes('seg')) {
+              // It's a specific segment ID! (e.g. kid-5b-seg1)
+              setActiveSource('GEMARA');
+              setActiveSegmentId(step.targetId);
+          }
+          else {
+              // Default for Gemara if not specified
+              setActiveSource('GEMARA');
+              setActiveSegmentId(null);
+          }
+      }
+
+      // 4. Handle Perspective Selection (Rishonim/Achronim)
+      if (step.targetId && (step.stage === StudyStage.DEPTH_RISHONIM || step.stage === StudyStage.DEPTH_ACHRONIM)) {
+          // Check if it exists in lists
+          const rishon = currentSugya.perspectives.find(p => p.id === step.targetId);
+          const achron = currentSugya.achronimPerspectives.find(p => p.id === step.targetId);
+          
+          if (rishon || achron) {
+              setActivePerspectiveId(step.targetId);
+          }
+      }
+      
+      // Removed auto-close on mobile so user can read the guide step content
+  }
   
   const handleGenerateDeepData = async () => {
       setIsGeneratingDeepData(true);
@@ -147,11 +229,10 @@ const App: React.FC = () => {
 
   const handleSourceNavigation = (direction: 'next') => {
       if (activeSource === 'CHUMASH') {
-          setActiveSource('MISHNA');
+          handleSourceSelect('MISHNA');
       } else if (activeSource === 'MISHNA') {
-          setActiveSource('GEMARA');
+          handleSourceSelect('GEMARA');
       }
-      // If needed, could navigate to Rishonim from Gemara
   };
 
   // --- RESIZE HANDLERS ---
@@ -193,7 +274,7 @@ const App: React.FC = () => {
               {/* 1. Intro */}
               <div 
                   className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-all ${currentStage === StudyStage.INTRO ? 'bg-slate-100 text-slate-900 font-bold' : 'text-slate-600 hover:bg-slate-50'}`}
-                  onClick={() => { setCurrentStage(StudyStage.INTRO); if(window.innerWidth < 1024) setIsSidebarOpen(false); }}
+                  onClick={handleIntroSelect}
               >
                   <FileText size={16} />
                   <span>Sugya Intro</span>
@@ -204,9 +285,9 @@ const App: React.FC = () => {
                   <div 
                       className={`flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-all mb-1 ${currentStage === StudyStage.SOURCE_TEXT ? 'bg-slate-100 text-slate-900 font-bold' : 'text-slate-600 hover:bg-slate-50'}`}
                       onClick={() => {
-                          setCurrentStage(StudyStage.SOURCE_TEXT);
-                          if (activeSource !== 'CHUMASH' && activeSource !== 'MISHNA' && activeSource !== 'GEMARA') {
-                              setActiveSource('CHUMASH');
+                          if (currentStage !== StudyStage.SOURCE_TEXT) {
+                              // If entering section, default to Chumash
+                              handleSourceSelect('CHUMASH');
                           }
                       }}
                   >
@@ -369,7 +450,7 @@ const App: React.FC = () => {
           <div className="fixed inset-0 bg-black/50 z-20" onClick={() => setIsSidebarOpen(false)}></div>
       )}
 
-      {/* UNIFIED SIDEBAR */}
+      {/* UNIFIED LEFT SIDEBAR (Menu) */}
       <aside 
         className={`
             bg-white border-r border-slate-200 flex flex-col flex-shrink-0 z-30 fixed lg:relative h-full
@@ -437,6 +518,7 @@ const App: React.FC = () => {
 
             {sidebarTab === 'CONCEPTS' && (
                 <div className="space-y-4 animate-in fade-in duration-300">
+                     {/* Concept Dictionary ... */}
                      <div className="flex items-center justify-between mb-2">
                         <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Global Dictionary</span>
                         <Settings size={14} className="text-slate-300" />
@@ -463,20 +545,6 @@ const App: React.FC = () => {
                                                 ))}
                                             </div>
                                         )}
-                                        {/* Opinions Section */}
-                                        {c.opinions && c.opinions.length > 0 && (
-                                            <div className="mb-3 bg-white/50 p-2 rounded border border-slate-100">
-                                                <div className="text-[9px] font-bold uppercase text-slate-400 mb-1">Opinions</div>
-                                                <div className="space-y-2">
-                                                    {c.opinions.map((op, idx) => (
-                                                        <div key={idx} className="text-[10px]">
-                                                            <span className="font-bold text-indigo-700 block">{op.authority}</span>
-                                                            <span className="text-slate-600 leading-tight block">{op.text}</span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
                                         <button 
                                             onClick={(e) => { e.stopPropagation(); handleConceptAi(c); }}
                                             className="w-full py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold rounded flex items-center justify-center gap-2 transition-colors"
@@ -500,42 +568,49 @@ const App: React.FC = () => {
             >
                 <Home size={14} /> Library
             </button>
-            <div className="mt-4 flex flex-col items-center gap-2">
-                <a 
-                    href="https://ai.studio/apps/drive/1zAPorQkB28G1ZcIfW8Nzgkbp25qCnDFK?fullscreenApplet=true" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center gap-2 text-[10px] text-white bg-indigo-600 hover:bg-indigo-700 py-1.5 rounded uppercase tracking-widest font-bold transition-colors"
-                >
-                    <GitFork size={12} /> Fork & Edit
-                </a>
-                <a href="https://x.com/mendysel" target="_blank" rel="noopener noreferrer" className="text-[10px] text-slate-400 hover:text-indigo-600 font-bold uppercase tracking-widest transition-colors">
-                    Created by Mendy S
-                </a>
-            </div>
         </div>
       </aside>
 
       {/* MAIN CONTENT AREA */}
       <main className="flex-1 flex flex-col relative transition-all duration-300 min-w-0 bg-[#fdfbf7]">
         
-        {/* HEADER (Floating button removed for mobile) */}
+        {/* Toggle Nav Button (Floating) */}
+        {viewMode === 'LEARN' && currentSugya.guide && !isNavigatorOpen && (
+            <button 
+                onClick={() => setIsNavigatorOpen(true)}
+                className="absolute top-4 right-4 z-40 bg-white border border-slate-200 shadow-md p-2 rounded-lg text-indigo-600 hover:bg-indigo-50 transition-colors"
+                title="Open Roadmap"
+            >
+                <PanelRightOpen size={20} />
+            </button>
+        )}
 
         {/* Content Viewport */}
         {viewMode === 'WHITEBOARD' ? (
              <Whiteboard sugya={currentSugya} onClose={() => setViewMode('LEARN')} />
         ) : (
-             <div className="flex-1 overflow-hidden flex flex-col bg-[#fdfbf7] relative pb-24 lg:pb-0">
+             <div className="flex-1 overflow-hidden flex flex-row bg-[#fdfbf7] relative pb-24 lg:pb-0">
+                
+                {/* Scrollable Center Content */}
                 <div 
+                    id="main-scroll-container"
                     className={`flex-1 overflow-y-auto p-0 w-full scroll-smooth`}
                     style={{ paddingBottom: selectedNode ? `${panelHeight}px` : '0px' }}
                 >
-                    
+                    {/* Expand Sidebar Toggle (If closed) */}
+                    {!isSidebarOpen && (
+                        <button 
+                            onClick={() => setIsSidebarOpen(true)}
+                            className="absolute top-4 left-4 z-40 bg-white/80 backdrop-blur border border-slate-200 shadow-sm p-2 rounded-lg text-slate-500 hover:text-indigo-600 transition-colors"
+                        >
+                            <Menu size={20} />
+                        </button>
+                    )}
+
                     {currentStage === StudyStage.INTRO && (
                         <ShearBlat 
                             onStart={() => {
-                                setCurrentStage(StudyStage.SOURCE_TEXT);
-                                setActiveSource('CHUMASH'); // Start with Chumash on button click
+                                handleSourceSelect('CHUMASH');
                             }}
                             title={currentSugya.title}
                             subtitle="Elucidated & Analyzed"
@@ -547,6 +622,7 @@ const App: React.FC = () => {
                         <TzurasHadaf 
                             sugya={currentSugya} 
                             activeSource={activeSource}
+                            activeSegmentId={activeSegmentId} // Pass tracking info
                             onAnalyze={handleTzurasHadafAnalyze} 
                             onSwitchSugya={handleSwitchSugya}
                             availableSugyas={AVAILABLE_SUGYAS.map(s => ({
@@ -575,22 +651,60 @@ const App: React.FC = () => {
                     )}
 
                     {(currentStage === StudyStage.DEPTH_RISHONIM || currentStage === StudyStage.DEPTH_ACHRONIM) && activeScholar && (
-                       <div className="h-full">
-                            <ScholarDepthView 
-                                perspective={activeScholar} 
-                                sourceText={currentSugya.baseText}
-                                category={currentStage === StudyStage.DEPTH_RISHONIM ? 'RISHONIM' : 'ACHRONIM'}
-                                onNavigate={handleScholarNavigation}
-                            />
-                       </div>
+                       <ScholarDepthView 
+                            perspective={activeScholar} 
+                            sourceText={currentSugya.baseText}
+                            category={currentStage === StudyStage.DEPTH_RISHONIM ? 'RISHONIM' : 'ACHRONIM'}
+                            onNavigate={handleScholarNavigation}
+                            relatedSources={currentSugya.relatedSources}
+                            guide={currentSugya.guide}
+                            activeGuideStepId={activeGuideStepId}
+                            onGuideNext={handleGuideNavigation}
+                        />
                     )}
                 </div>
+
+                {/* RIGHT SIDEBAR NAVIGATOR */}
+                {currentSugya.guide && isNavigatorOpen && (
+                    <div className={`
+                        fixed inset-0 z-[60] lg:relative lg:z-0 lg:h-full lg:flex lg:flex-row
+                        ${window.innerWidth < 1024 ? 'bg-black/50' : ''} 
+                    `}
+                    onClick={(e) => {
+                        // Close on overlay click
+                        if (e.target === e.currentTarget && window.innerWidth < 1024) {
+                            setIsNavigatorOpen(false);
+                        }
+                    }}
+                    >
+                        {/* Wrapper for responsive drawer */}
+                        <div className="h-full flex flex-row absolute right-0 lg:relative lg:right-auto bg-white lg:bg-transparent shadow-2xl lg:shadow-none w-[85%] max-w-sm lg:w-auto transform transition-transform animate-in slide-in-from-right duration-300">
+                            {/* Close Handle (Desktop Only usually, but re-used here) */}
+                            <div className="hidden lg:flex h-full border-l border-slate-200 bg-slate-50 flex-col items-center py-2 w-4 hover:bg-slate-100 cursor-pointer transition-colors" onClick={() => setIsNavigatorOpen(false)}>
+                                <PanelRightClose size={12} className="text-slate-400" />
+                            </div>
+                            
+                            <SugyaNavigator 
+                                guide={currentSugya.guide}
+                                currentStage={currentStage}
+                                activeId={activeGuideStepId}
+                                onNavigate={handleGuideNavigation}
+                                onClose={() => setIsNavigatorOpen(false)}
+                            />
+                        </div>
+                    </div>
+                )}
 
                 {/* Bottom Horizontal Details Panel */}
                 {selectedNode && (
                     <div 
-                        className="fixed bottom-16 lg:bottom-0 left-0 right-0 lg:left-72 bg-white border-t-2 border-slate-900 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] z-40 flex flex-col"
-                        style={{ height: `${panelHeight}px`, transition: isDraggingPanel.current ? 'none' : 'height 0.3s ease' }}
+                        className="fixed bottom-16 lg:bottom-0 left-0 right-0 bg-white border-t-2 border-slate-900 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] z-40 flex flex-col"
+                        style={{ 
+                            height: `${panelHeight}px`, 
+                            left: isSidebarOpen ? '18rem' : '0',
+                            right: (isNavigatorOpen && currentSugya.guide && window.innerWidth >= 1024) ? '25rem' : '0', 
+                            transition: isDraggingPanel.current ? 'none' : 'all 0.3s ease' 
+                        }}
                     >
                         {/* Drag Handle */}
                         <div 
@@ -617,7 +731,7 @@ const App: React.FC = () => {
 
                         {/* Panel Content Grid */}
                         <div className="flex-1 overflow-hidden grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-200">
-                            
+                            {/* ... Content same as before ... */}
                             {/* Column 1: Text */}
                             <div className="p-6 overflow-y-auto bg-slate-50/30">
                                 <div className="text-[10px] font-bold text-slate-400 uppercase mb-3">Source Text</div>
@@ -702,7 +816,7 @@ const App: React.FC = () => {
         )}
       </main>
 
-      {/* MOBILE FOOTER NAVIGATION (Hidden in Whiteboard Mode) */}
+      {/* MOBILE FOOTER NAVIGATION (unchanged from previous) */}
       {viewMode !== 'WHITEBOARD' && (
         <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] flex flex-col bg-white">
             <div className="bg-slate-50 text-[10px] text-center py-1.5 text-slate-400 border-t border-slate-200 font-medium">
@@ -710,7 +824,7 @@ const App: React.FC = () => {
             </div>
             <div className="h-16 flex justify-around items-center border-t border-slate-200">
                 <button 
-                    onClick={() => { setCurrentStage(StudyStage.SOURCE_TEXT); if(window.innerWidth < 1024) setIsSidebarOpen(false); }}
+                    onClick={() => { handleSourceSelect('CHUMASH'); if(window.innerWidth < 1024) setIsSidebarOpen(false); }}
                     className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-bold gap-1 ${currentStage === StudyStage.SOURCE_TEXT ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500'}`}
                 >
                     <BookOpen size={20} />
@@ -738,17 +852,17 @@ const App: React.FC = () => {
                     <span>Psak</span>
                 </button>
                 <button 
-                    onClick={() => setIsSidebarOpen(true)}
-                    className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-bold gap-1 ${isSidebarOpen ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500'}`}
+                    onClick={() => setIsNavigatorOpen(true)}
+                    className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-bold gap-1 ${isNavigatorOpen ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500'}`}
                 >
-                    <Menu size={20} />
-                    <span>Menu</span>
+                    <Map size={20} />
+                    <span>Roadmap</span>
                 </button>
             </div>
         </div>
       )}
 
-      {/* AI Slide-over Panel */}
+      {/* AI Slide-over Panel (unchanged) */}
       {aiPanelOpen && (
         <div className="fixed right-0 top-0 h-full w-full lg:w-96 bg-white shadow-2xl z-50 border-l border-slate-200 flex flex-col animate-in slide-in-from-right duration-300">
              <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-indigo-50/50 to-white">
